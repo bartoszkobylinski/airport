@@ -4,7 +4,7 @@ import json
 
 class Connection:
     
-    def __init__(self, host='127.0.0.1', port=6470, buffer=1024, encoder='utf-8', connection_type="Airport"):
+    def __init__(self, host='127.0.0.1', port=6470, buffer=1024, encoder='utf-8', connection_type="airport"):
         self.host = host
         self.port = port
         self.buffer = buffer
@@ -15,13 +15,13 @@ class Connection:
         self.address = None
 
     def __enter__(self):
-        if self.connection_type == "Airport":
+        if self.connection_type == "airport":
             self.socket = soc.socket(soc.AF_INET, soc.SOCK_STREAM)
             self.socket.bind((self.host, self.port))
             self.socket.listen()
             cli_soc,self.address = self.socket.accept()
             self.connection = cli_soc
-        if self.connection_type == "Airplane":
+        if self.connection_type == "airplane":
             self.connection = soc.socket(soc.AF_INET, soc.SOCK_STREAM)
             self.connection.connect((self.host, self.port))
         return self
@@ -44,7 +44,7 @@ class Connection:
         if self.connection_type == "airport":
             return "Airport control tower is active"
         elif self.connection_type == "airplane":
-            return "Airplane is actvie"
+            return "Airplane is active"
         else:
             return "Either airport nor airplane is active"
 
