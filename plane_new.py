@@ -7,7 +7,7 @@ import string
 class Airplane(socket.socket):
     unique_ids = set()
 
-    def __init__ (self, host='127.0.0.1', port=9485, encoder='utf-8', buffer=1024):
+    def __init__ (self, host='127.0.0.1', port=6485, encoder='utf-8', buffer=1024):
         self.host = host
         self.port = port
         self.encoder = encoder
@@ -20,7 +20,10 @@ class Airplane(socket.socket):
         Airplane.unique_ids.add(self.uniqueID)
 
     def send_json(self, data):
-        json_data = json.dumps(f"{self.uniqueID}: {data}")
+        data_to_send = {"airplane_ID": self.uniqueID,'data':data}
+        #data_to_send[self.uniqueID] = dict()
+        #data_to_send[self.uniqueID].update(data=data)
+        json_data = json.dumps(data_to_send)
         self.socket.send(json_data.encode(self.encoder))
         
     def recv_json(self):

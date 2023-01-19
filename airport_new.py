@@ -4,7 +4,7 @@ import threading
 
 class Airport(socket.socket):
 
-    def __init__(self, host='127.0.0.1', port=9485 , encoder='utf-8', buffer=1024):
+    def __init__(self, host='127.0.0.1', port=6485 , encoder='utf-8', buffer=1024):
         self.host = host
         self.port = port
         self.encoder = encoder
@@ -34,9 +34,10 @@ class Airport(socket.socket):
             
             data = self.recv_json(client_socket)
             print(f"{type(data)} and: {data}")
-            match data:
+            match data.get('data',''):
                 case "stop":
                     self.socket.close()
+                    break
                 case "time":
                     response = "to jest czas: bla"
                     self.send_json(client_socket, response)
@@ -55,7 +56,7 @@ while True:
     try:
         client_socket, adrres = airport.socket.accept()
     except Exception as e:
-        print(f"there is e: {e}")
+        print(f"Server closed connection")
         break
     try:
         t = threading.Thread(target=airport.handle_new_client, args=[client_socket])
