@@ -9,7 +9,7 @@ import time
 class Airplane(socket.socket):
     unique_ids = set()
 
-    def __init__ (self, host='127.0.0.1', port=5485, encoder='utf-8', buffer=1024):
+    def __init__ (self, host='127.0.0.1', port=9485, encoder='utf-8', buffer=2048):
         self.host = host
         self.port = port
         self.encoder = encoder
@@ -28,8 +28,6 @@ class Airplane(socket.socket):
 
     def send_json(self, data):
         data_to_send = {"airplane_ID": self.uniqueID,'data':data}
-        #data_to_send[self.uniqueID] = dict()
-        #data_to_send[self.uniqueID].update(data=data)
         json_data = json.dumps(data_to_send)
         self.socket.send(json_data.encode(self.encoder))
         
@@ -41,42 +39,56 @@ class Airplane(socket.socket):
             else:
                 self.socket.close()
 
-    def move(self):
-        self.x += self.velocity * math.cos(self.direction)
-        self.y += self.velocity * math.sin(self.direction)
-        print(f"my position is x: {self.x} and {self.y}")
-        data = {"airplane_ID": self.uniqueID, 
-        "data": {"x":self.x, "y":self.y,"velocity":self.velocity, "direction": self.direction}}
-        return data
-    
-    def recieve_permission(self):
+    def fly_to_corridor(self, corridor_x, corridor_y, threshold = 50):
+        self.set_direction_to_corridor(corridor_x, corridor_y)
+        distance = math.sqrt((self.x - corridor_x)**2 + (self.y - corridor_y)**2)
+        if distance >threshold:
+            self.x += self.velocity * math.cos(self.direction)
+            self.y += self.velocity * math.sin(self.direction)
+            distance = math.sqrt((self.x - corridor_x)**2 + (self.y - corridor_y)**2)
+            data = {"airplane_ID": self.uniqueID, 
+                "data": {"x":self.x, "y":self.y,}}
+                #"data":"dupa"}
+            print(f"your distance is: {distance}")
+            #self.send_json(data)
+            print(f"I have send {data}")
+            return data
+        '''
+        while distance > threshold:
+            self.x += self.velocity * math.cos(self.direction)
+            self.y += self.velocity * math.sin(self.direction)
+            distance = math.sqrt((self.x - corridor_x)**2 + (self.y - corridor_y)**2)
+            data = {"airplane_ID": self.uniqueID, 
+                "data": {"x":self.x, "y":self.y,"velocity":self.velocity, "direction": self.direction}}
+            print(f"your distance is: {distance}")
+            self.send_json(data)
+            time.sleep(1)
+        '''
+
+    def set_direction_to_corridor(self, corridor_x, corridor_y):
+        self.direction = math.atan2(corridor_y - self.y, corridor_x - self.x)
+
+    def recieve_permission(data):
+        if data:
+            return True
+        else:
+            del self
+        
+    def send_permission_to_aproach(self):
+        return "ask"
         pass
 
-    def check_corridor_approach(self, corridor_coordinates):
-        x_corridor, y_corridor, z_corridor = corridor_coordinates
-        distance = math.sqrt((self.x - x_corridor)**2 + (self.y - y_corridor)**2 +(self.z - z_corridor)**2)
-        if distance < THRESHOLD_DISTANCE:
-            self.velocity
-
-
 airplane = Airplane()
-'''
-while True:
-    msg = input("onetuh: ")
-    airplane.send_json(msg)
-    if not msg:
-        airplane.close()
-        break
-    msg = airplane.recv_json()
-    print(msg)
-'''
+airplane.send_json(airplane.send_permission_to_aproach())
+msg = airplane.recieve_permission()
+print(f"Airplane got message: {msg} so it can starting landing procedure")
+time.sleep(3)
 
-while True:
-    move = airplane.move()
-    print(f"move data type: {type(move)} and move data: {move}")
-    airplane.send_json(move)
-    data = airplane.recv_json
-    if data:
-        print(data)
-    
-    time.sleep(1)
+while msg:
+    msg_1 = airplane.recv_json()
+    print(f"I've got message from airport: {msg_1}")
+    message = airplane.fly_to_corridor(0,0)
+    airplane.send_json(message)
+    time.sleep(3)
+else:
+    del airplane

@@ -1,10 +1,11 @@
 import socket
 import json
 import threading
+import time
 
 class Airport(socket.socket):
 
-    def __init__(self, host='127.0.0.1', port=6485 , encoder='utf-8', buffer=1024):
+    def __init__(self, host='127.0.0.1', port=9485 , encoder='utf-8', buffer=2048):
         self.host = host
         self.port = port
         self.encoder = encoder
@@ -13,9 +14,11 @@ class Airport(socket.socket):
         self.socket.bind((self.host, self.port))
         self.socket.listen(2)
         self.landing_lanes = {'1':[], '2':[]}
-        self.width = 10000
-        self.long = 10000
-        self.high = 5000
+        self.x = 0
+        self.y = 0
+        self.z = 0
+        self.airplanes = []
+        
 
     def send_json(self, client_socket, data):
         json_data = json.dumps(data)
@@ -31,10 +34,17 @@ class Airport(socket.socket):
     def handle_new_client(self, client_socket):
 
         while True:
-            
+            print("zaczynamy !!!!! !!!! !!!!")
             data = self.recv_json(client_socket)
-            print(f"{type(data)} and: {data}")
+
+            print(f"I got something: data type {type(data)} and data {data}")
             match data.get('data',''):
+                case "ask":
+                    print("Airport got question about permission to land")
+                    message = self.give_permission_to_approach()
+                    print(f"Message to airplane permission is: {message}")
+                    self.send_json(client_socket, message)
+                    print("message has been sent to airplane")
                 case "stop":
                     self.socket.close()
                     break
@@ -45,8 +55,19 @@ class Airport(socket.socket):
                     response = "bla, bla bla"
                     self.send_json(client_socket, response)
                 case _:
+                    print("Airplane send message with no case statement")
                     response = {"response": "Response: message recived"}
                     self.send_json(client_socket, response)
+                
+            time.sleep(5)
+
+    def give_permission_to_approach(self):
+        if len(self.airplanes) < 100:
+            return True
+        else:
+            return False
+
+
 
 airport = Airport()
 
