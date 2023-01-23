@@ -7,7 +7,7 @@ import string
 class Airplane(socket.socket):
     unique_ids = set()
 
-    def __init__ (self, host='127.0.0.1', port=6485, encoder='utf-8', buffer=1024):
+    def __init__ (self, host='127.0.0.1', port=5485, encoder='utf-8', buffer=1024):
         self.host = host
         self.port = port
         self.encoder = encoder
@@ -27,15 +27,20 @@ class Airplane(socket.socket):
         self.socket.send(json_data.encode(self.encoder))
         
     def recv_json(self):
-        data = self.socket.recv(self.buffer)
-        json_data = json.loads(data.decode(self.encoder))
-        return json_data
+            data = self.socket.recv(self.buffer)
+            if data:
+                json_data = json.loads(data.decode(self.encoder))
+                return json_data
+            else:
+                self.socket.close()
 airplane = Airplane()
 
 while True:
     msg = input("onetuh: ")
     airplane.send_json(msg)
-
+    if not msg:
+        airplane.close()
+        break
     msg = airplane.recv_json()
     print(msg)
     
