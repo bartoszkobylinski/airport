@@ -83,14 +83,16 @@ class Airport(socket.socket):
     
     def add_or_update_airplane_to_list(self, airplane_data):
         with self.lock:
+            airplane_ID = airplane_data.get("airplane_ID",'')
+            found = False
             if len(self.airplanes) > 0:
                 for plane in self.airplanes:
-                    if airplane_data.get("airplane_ID") == plane.get("airplane_ID"):
-                        print("znalazlem aktualizuje")
+                    if airplane_ID == plane.get("airplane_ID"):
                         plane.update(airplane_data)
-                    else:
-                        print(f"nie znalazlem takiego samego numeru samolotu")
-                        self.airplanes.append(airplane_data)
+                        found = True
+                        break
+                if not found:
+                    self.airplanes.append(airplane_data)
             else:
                 self.airplanes.append(airplane_data)
         
