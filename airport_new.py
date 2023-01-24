@@ -1,7 +1,7 @@
 import socket
 import json
 import threading
-import time
+import math
 from main_new import IP_PORT
 
 class Airport(socket.socket):
@@ -60,6 +60,7 @@ class Airport(socket.socket):
                     print(f"I have updated info about plane: {airplane.get('airplane_ID','')} x:{airplane.get('x','')} y: {airplane.get('y','')}")
                     self.add_or_update_airplane_to_list(airplane_data=airplane)
                     response = "ok"
+                    self.check_all_collision(self.airplanes)
                     self.send_json(client_socket, response)
                 case "nudy":
                     response = "bla, bla bla"
@@ -95,6 +96,23 @@ class Airport(socket.socket):
                     self.airplanes.append(airplane_data)
             else:
                 self.airplanes.append(airplane_data)
+    
+    def check_collision(self, airplane1, airplane2, limit=10):
+        x1, y1 = airplane1.get("x"), airplane1.get("y")
+        x2, y2 = airplane2.get("x"), airplane2.get("y")
+        distance = math.sqrt((x1-x2)**2 + (y1-y2)**2)
+        if distance < limit:
+            return True
+        else:
+            return False
+    
+    def check_all_collision(self, airplanes, limit=10):
+        for i in range(len(airplanes)):
+            for j in range(i+1, len(airplanes)):
+                if self.check_collision(airplanes[i], airplanes[j], limit=limit):
+                    print("Airplanes collide")
+                else:
+                    print("no collision")
         
         
 

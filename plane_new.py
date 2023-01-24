@@ -4,12 +4,13 @@ import random
 import string
 import math
 import time
+from main_new import IP_PORT
 
 
 class Airplane(socket.socket):
     unique_ids = set()
 
-    def __init__ (self, host='127.0.0.1', port=9485, encoder='utf-8', buffer=2048):
+    def __init__ (self, host='127.0.0.1', port=12000, encoder='utf-8', buffer=2048):
         self.host = host
         self.port = port
         self.encoder = encoder
@@ -21,13 +22,14 @@ class Airplane(socket.socket):
         self.velocity = random.randint(10, 20)
         self.direction = random.randint(0, 360)
         self.fuel = random.randint(0, 1000)
-        self.uniqueID = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+        self.uniqueID = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
         while self.uniqueID in Airplane.unique_ids:
             self.uniqueID = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
         Airplane.unique_ids.add(self.uniqueID)
 
     def send_json(self, data):
-        data_to_send = {"airplane_ID": self.uniqueID,'data':data}
+        print(f"klient otrzymal: {data}")
+        data_to_send = {"airplane_ID": self.uniqueID} | data
         json_data = json.dumps(data_to_send)
         self.socket.send(json_data.encode(self.encoder))
         
@@ -46,8 +48,7 @@ class Airplane(socket.socket):
             self.x += self.velocity * math.cos(self.direction)
             self.y += self.velocity * math.sin(self.direction)
             distance = math.sqrt((self.x - corridor_x)**2 + (self.y - corridor_y)**2)
-            data = {"airplane_ID": self.uniqueID, 
-                "data": {"x":self.x, "y":self.y,}}
+            data = {"data": "fly", "coordinates": {"x":round(self.x,2), "y":round(self.y,2)}}
                 #"data":"dupa"}
             print(f"your distance is: {distance}")
             #self.send_json(data)
@@ -75,13 +76,12 @@ class Airplane(socket.socket):
             del self
         
     def send_permission_to_aproach(self):
-        return "ask"
-        pass
+        return {"data":"ask"}
+        
 
 airplane = Airplane()
 airplane.send_json(airplane.send_permission_to_aproach())
 msg = airplane.recieve_permission()
-print(f"Airplane got message: {msg} so it can starting landing procedure")
 time.sleep(3)
 
 while msg:
@@ -90,5 +90,6 @@ while msg:
     message = airplane.fly_to_corridor(0,0)
     airplane.send_json(message)
     time.sleep(3)
+    airplane.send_json({"data":"print"})
 else:
     del airplane
