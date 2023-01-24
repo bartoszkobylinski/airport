@@ -17,10 +17,13 @@ class Airport(socket.socket):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.host, self.port))
         self.socket.listen(2)
-        self.landing_lanes = {'1':[], '2':[]}
+        self.runway1 = []
+        self.runway2 = []
         self.x = 0
         self.y = 0
         self.z = 0
+        self.corridor_1_x = 1000
+        self.corridor_1_y = 2000
         
 
     def send_json(self, client_socket, data):
@@ -47,21 +50,31 @@ class Airport(socket.socket):
                     message = self.give_permission_to_approach()
                     print(f"Message to airplane permission is: {message}")
                     self.send_json(client_socket, message)
-                    print("message has been sent to airplane")
                 case "stop":
                     self.socket.close()
                     break
-                case "fly":
+                case "fly_to_corridor":
                     airplane_ID = data.get("airplane_ID",'')
                     x = data.get("coordinates",'').get("x",'')
                     y = data.get("coordinates",'').get("y",'')
+                    z = data.get("coordinates",'').get("z",'')
                     airplane = dict()
-                    airplane.update(airplane_ID=airplane_ID, x=x, y=y)
-                    print(f"I have updated info about plane: {airplane.get('airplane_ID','')} x:{airplane.get('x','')} y: {airplane.get('y','')}")
+                    airplane.update(airplane_ID=airplane_ID, x=x, y=y, z=z)
+                    print(f"I have updated info about plane: {airplane.get('airplane_ID','')} x:{airplane.get('x','')} y: {airplane.get('y','')} z:{airplane.get('z','')}")
                     self.add_or_update_airplane_to_list(airplane_data=airplane)
                     response = "ok"
                     self.check_all_collision(self.airplanes)
                     self.send_json(client_socket, response)
+                case "fly":
+                    airplane_ID = data.get("airplane_ID",'')
+                    x = data.get("coordinates",'').get("x",'')
+                    y = data.get("coordinates",'').get("y",'')
+                    z = data.get("coordinates",'').get("z",'')
+                    airplane = dict()
+                    airplane.update(airplane_ID=airplane_ID, x=x, y=y, z=z)
+                    self.add_or_update_airplane_to_list(airplane_data=airplane)
+                    self.ch
+                    pass
                 case "nudy":
                     response = "bla, bla bla"
                     self.send_json(client_socket, response)
@@ -77,10 +90,17 @@ class Airport(socket.socket):
             #time.sleep(5)
 
     def give_permission_to_approach(self):
-        if len(self.__class__.airplanes) < 100:
+        if len(self.airplanes) < 100:
             return True
         else:
             return False
+    
+    def inbound_for_landing(self):
+        with self.lock:
+            if len(self.runway1) == 0 or len(self.runway2) == 0:
+                return "Permission denied"
+            else:
+                return "Permission granted"
     
     def add_or_update_airplane_to_list(self, airplane_data):
         with self.lock:
