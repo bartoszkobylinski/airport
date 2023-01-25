@@ -26,8 +26,10 @@ class Airport(Socket_Connection):
         self.z = 0
         self.corridor_1_x = 1000
         self.corridor_1_y = 2000
+        self.corridor_1_z = 0
         self.corridor_2_x = -1000
         self.corridor_2_y = -2000
+        self.corridor_2_z = 0
 
         
 
@@ -137,10 +139,10 @@ class Airport(Socket_Connection):
                 print(f"Flight number: {airplane_data.get('airplane_ID','')} approaching airports runway")
                 if not self.runway1:
                     self.runway1.append(airplane_data)
-                    return {'message':"permission granted", "data":{"x": self.corridor_1_x, "y": self.corridor_1_y}}
+                    return {'message':"permission granted", "data":{"x": self.corridor_1_x, "y": self.corridor_1_y, "z": self.corridor_1_z}}
                 else:
                     self.runway2.append(airplane_data)
-                    return  {'message':"permission granted", "data":{"x": self.corridor_2_x, "y": self.corridor_2_y}}
+                    return  {'message':"permission granted", "data":{"x": self.corridor_2_x, "y": self.corridor_2_y, "z": self.corridor_2_z}}
     
     def add_or_update_airplane_to_list(self, airplane_data):
         with self.lock:
