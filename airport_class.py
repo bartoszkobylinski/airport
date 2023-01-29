@@ -1,7 +1,6 @@
 import json
 import threading
 import math
-from main_new import IP_PORT
 from socket_connection import Socket_Connection
 
 
@@ -10,15 +9,10 @@ class Airport(Socket_Connection):
     airplanes = []
     lock = threading.Lock()
 
-    def __init__(self):#, host='127.0.0.1', port=5000 , encoder='utf-8', buffer=2048):
-        #self.host = host
-        #self.port = port
-        #self.encoder = encoder
-        #self.buffer = buffer
+    def __init__(self):
         super().__init__()
-        #self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.host, self.port))
-        self.socket.listen(2)
+        self.socket.listen()
         self.runway1 = False
         self.runway2 = False
         self.x = 0
@@ -57,31 +51,14 @@ class Airport(Socket_Connection):
                         print(f"Message to airplane permission is: {message}")
                         self.send_json(client_socket, message)
                     case "fly":
-                        airplane_ID = data.get("airplane_ID",'')
-                        x = data.get("coordinates",'').get("x",'')
-                        y = data.get("coordinates",'').get("y",'')
-                        z = data.get("coordinates",'').get("z",'')
-                        airplane = dict()
-                        airplane.update(airplane_ID=airplane_ID, x=x, y=y, z=z)
-                        self.add_or_update_airplane_to_list(airplane_data=airplane)
-                        self.check_all_collision(self.airplanes)
-                        response = {"message":"ok"}
-                        self.send_json(client_socket,response)
-                    case "inbound":
+                        message = self.fly(data)
+                        self.send_json(client_socket,message)
+                    case "inbound_request":
                         response =self.inbound_for_landing(data)
                         print(f"This is what I can tell about INBOUND: {response}")
                         self.send_json(client_socket, response)
-                        airplane_ID = data.get("airplane_ID",'')
-                        print(f"This is your DATA MF: {data.get('coordinates','')}")
-                        x = data.get("coordinates",'').get("x",'')
-                        y = data.get("coordinates",'').get("y",'')
-                        z = data.get("coordinates",'').get("z",'')
-                        airplane = dict()
-                        airplane.update(airplane_ID=airplane_ID, x=x, y=y, z=z)
-                        print(f"I have updated info about plane: {airplane.get('airplane_ID','')} x:{airplane.get('x','')} y: {airplane.get('y','')} z:{airplane.get('z','')}")
-                        self.add_or_update_airplane_to_list(airplane_data=airplane)
-                        response = {"message":"ok for inbounding"}
-                        self.check_all_collision(self.airplanes)
+                    case "inbound":
+                        message = self.inbounding(data)
                         self.send_json(client_socket, response)
                         print(response)
                     case None:
@@ -98,43 +75,7 @@ class Airport(Socket_Connection):
             else:
                 print("Data has None value")
                 continue
-            """
-                case "stop":
-                    self.socket.close()
-                    break
-                case "inbound":
-                    airplane_ID = data.get("airplane_ID",'')
-                    print(f"This is your DATA MF: {data.get('coordinates','')}")
-                    x = data.get("coordinates",'').get("x",'')
-                    y = data.get("coordinates",'').get("y",'')
-                    z = data.get("coordinates",'').get("z",'')
-                    airplane = dict()
-                    airplane.update(airplane_ID=airplane_ID, x=x, y=y, z=z)
-                    print(f"I have updated info about plane: {airplane.get('airplane_ID','')} x:{airplane.get('x','')} y: {airplane.get('y','')} z:{airplane.get('z','')}")
-                    self.add_or_update_airplane_to_list(airplane_data=airplane)
-                    response = {"message":"ok for inbounding"}
-                    self.check_all_collision(self.airplanes)
-                    self.send_json(client_socket, response)
-                case "fly":
-                    airplane_ID = data.get("airplane_ID",'')
-                    x = data.get("coordinates",'').get("x",'')
-                    y = data.get("coordinates",'').get("y",'')
-                    z = data.get("coordinates",'').get("z",'')
-                    airplane = dict()
-                    airplane.update(airplane_ID=airplane_ID, x=x, y=y, z=z)
-                    self.add_or_update_airplane_to_list(airplane_data=airplane)
-                    self.check_all_collision(self.airplanes)
-                    response = {"message":"ok"}
-                    self.send_json(client_socket,response)
-                    
-                case "nudy":
-                    response = {"message":"bla bla bla"}
-                    self.send_json(client_socket, response)
-                case "print":
-                    print(f"THIS IS A LIST OF AIRPLANES: {self.airplanes}")
-
-                
-            """
+            
     def give_permission_to_approach(self):
         if len(self.airplanes) < 100:
             return {"message": True}
@@ -186,26 +127,30 @@ class Airport(Socket_Connection):
                     return {"message": f"Airplanes {airplanes[i]} and {airplanes[j]} collide!"}
                 else:
                     continue
+
+    def fly(self, data):
+        airplane_ID = data.get("airplane_ID",'')
+        x = data.get("coordinates",'').get("x",'')
+        y = data.get("coordinates",'').get("y",'')
+        z = data.get("coordinates",'').get("z",'')
+        airplane = dict()
+        airplane.update(airplane_ID=airplane_ID, x=x, y=y, z=z)
+        self.add_or_update_airplane_to_list(airplane_data=airplane)
+        self.check_all_collision(self.airplanes)
+        response = {"message":"ok"}
+        return response
+
+    def inbounding(self, data):
+        airplane_ID = data.get("airplane_ID",'')
+        print(f"This is your DATA MF: {data.get('coordinates','')}")
+        x = data.get("coordinates",'').get("x",'')
+        y = data.get("coordinates",'').get("y",'')
+        z = data.get("coordinates",'').get("z",'')
+        airplane = dict()
+        airplane.update(airplane_ID=airplane_ID, x=x, y=y, z=z)
+        print(f"I have updated info about plane: {airplane.get('airplane_ID','')} x:{airplane.get('x','')} y: {airplane.get('y','')} z:{airplane.get('z','')}")
+        self.add_or_update_airplane_to_list(airplane_data=airplane)
+        response = {"message":"ok for inbounding"}
+        self.check_all_collision(self.airplanes)
+        return response
         
-        
-
-
-'''
-
-airport = Airport()
-lock = threading.Lock()
-
-while True:
-    print("Waititng for the incoming connections")
-    print("-------------------------------------")
-    try:
-        client_socket, adrres = airport.socket.accept()
-    except Exception as e:
-        print(f"Server closed connection")
-        break
-    try:
-        t = threading.Thread(target=airport.handle_new_client, args=[client_socket])
-        t.start()
-    except Exception as e:
-        print(f"I try start new thread but i got Excpetion: {e}")
-'''
