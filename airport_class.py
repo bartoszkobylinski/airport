@@ -32,18 +32,27 @@ class Airport(Socket_Connection):
         client_socket.send(json_data.encode(self.encoder))
     
     def recv_json(self,client_socket):
-        data= client_socket.recv(self.buffer)
-        if not data: 
-            return None
-        json_data = json.loads(data.decode(self.encoder))
-        return json_data
+        try:
+            data= client_socket.recv(self.buffer)
+            if not data: 
+                return None
+            json_data = json.loads(data.decode(self.encoder))
+            return json_data
+        except ConnectionResetError as error:
+            print(f"Client got some problem with connection and is not connected to the server now")
+
 
     def handle_new_client(self, client_socket):
 
         while True:
-            data = self.recv_json(client_socket)
-            print(f"I've got data: {data}")
-            if data:
+            try:
+                data = self.recv_json(client_socket)
+            except ConnectionResetError as error:
+                print("Client is not connected to the server. Waiting for connection...")
+            if not data:
+                print("There were some problem with connection")
+                break
+            else:
                 match data.get('data',''):
                     case "ask":
                         print("Airport got question about permission to land")
@@ -54,7 +63,7 @@ class Airport(Socket_Connection):
                         message = self.fly(data)
                         self.send_json(client_socket,message)
                     case "inbound_request":
-                        response =self.inbound_for_landing(data)
+                        response =self.inbound_for_landing()
                         print(f"This is what I can tell about INBOUND: {response}")
                         self.send_json(client_socket, response)
                     case "inbound":
@@ -66,16 +75,24 @@ class Airport(Socket_Connection):
                         print("I have got None value")
                         continue
                     case "landed":
-                        self.socket.close()
-                        print(f"Airplane landed")
-                        break
+                        data = data.get('cooridor').get("x")
+                        print(f"I have got corridor info: {data}")
+                        if str(data) == '1000':
+                            self.runway1 = False 
+                            self.socket.close()
+                            print(f"Airplane landed")
+                            break
+                        elif str(data) == '4000':
+                            self.runway2 = False
+                            self.socket.close()
+                            print(f"Airplane landed")
+                            break
+                        else:
+                            continue
                     case _:
                         print("Airplane send message with no case statement")
                         response = {"message": "Response: message recived"}
                         self.send_json(client_socket, response)
-            else:
-                print("Data has None value")
-                continue
             
     def give_permission_to_approach(self):
         if len(self.airplanes) < 100:
@@ -83,7 +100,7 @@ class Airport(Socket_Connection):
         else:
             return {"message": False}
     
-    def inbound_for_landing(self, airplane_data):
+    def inbound_for_landing(self):
         with self.lock:
             if self.runway1 and self.runway2:
                 return {"message":"permission denied"}

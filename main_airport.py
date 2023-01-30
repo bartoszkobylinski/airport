@@ -37,5 +37,6 @@ while delta_time < 3600:
 
 for t in threads:
     t.join()
+    
 if not server_running:
     airport.socket.close()
