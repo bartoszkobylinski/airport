@@ -9,6 +9,19 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
+class UniqueIDGenerator:
+    unique_ids = set()
+
+    @classmethod
+    def generate_unique_id(cls):
+        uniqueId = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        while uniqueId in cls.unique_ids:
+            uniqueID = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+        cls.unique_ids.add(uniqueID)
+        return uniqueID
+
+
+
 class Airplane(SocketConnection):
     unique_ids = set()
 
