@@ -2,10 +2,9 @@ import socket
 import random
 
 
+class SocketConnection(socket.socket):
 
-class Socket_Connection(socket.socket):
-
-    def __init__ (self, port=33452, host='127.0.0.1', encoder='utf-8', buffer=2048):
+    def __init__ (self, port=13452, host='127.0.0.1', encoder='utf-8', buffer=2048):
         self.host = host
         self.port = port
         self.encoder = encoder
