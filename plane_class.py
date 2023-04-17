@@ -78,17 +78,9 @@ class Airplane(SocketConnection):
     def calculate_distance(self, x, y, z):
         return np.linalg.norm(np.array([self.x, self.y, self.z]) - np.array([x, y, z]))
 
-    def handle_entered_corridor(self, corridor_x, corridor_y, corridor_z):
-        distance = self.calculate_distance(corridor_x, corridor_y, corridor_z)
-        logging.info(f"Airplane {self.uniqueID} is {round(distance, 0)} meters away from the corridor")
-        time.sleep(1.5)
-        if distance <= 100:
-            logging.info(f"Airplane {self.uniqueID} has entered the corridor")
-            self.landed = True
-            data = self.send_landed_information(corridor_x)
-            return data
-        else:
-            return None
+    def handle_entered_corridor(self):
+        logging.info(f"Airplane {self.uniqueID} has entered the corridor")
+        self.landed = True
 
     def update_airplane_position(self, corridor_x, corridor_y, corridor_z, distance):
         if 100 < distance < 500:
@@ -106,14 +98,11 @@ class Airplane(SocketConnection):
             if self.fuel == 0:
                 logging.error(f"Airplane {self.uniqueID} has run out of fuel and has collide")
 
-    def send_landed_information(self, corridor):
-        return {"data": "landed", "corridor": corridor}
+    def send_landed_information(self):
+        return {"data": "landed", "coordinates": {"x": self.x, "y": self.y, "z": self.z}}
 
     def send_inbound_coordinates(self):
         return {"data": "inbound", "coordinates": {"x": self.x, "y": self.y, "z": self.z}}
-
-
-
 
     def recieve_permission(self, data):
         if data:
