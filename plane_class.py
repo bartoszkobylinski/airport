@@ -5,28 +5,37 @@ import math
 import time
 import numpy as np
 from socket_connection import SocketConnection
+import logging
 
+logging.basicConfig(level=logging.INFO)
 
 class Airplane(SocketConnection):
     unique_ids = set()
 
-    def __init__ (self):
+    def __init__(self):
         super().__init__()
-        
+
         self.socket.connect((self.host, self.port))
+        self.init_airplane_state()
+        self.permission_granted = None
+        self.inbound = None
+        self.landed = False
+
+    def init_airplane_state(self):
         self.x = random.randint(-5000, 5000)
         self.y = random.randint(-5000, 5000)
         self.z = random.randint(2000, 5000)
         self.velocity = random.randint(50, 500)
         self.direction = random.randint(0, 360)
         self.fuel = random.randint(0, 1000)
-        self.uniqueID = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        while self.uniqueID in Airplane.unique_ids:
-            self.uniqueID = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-        Airplane.unique_ids.add(self.uniqueID)
-        self.permission_granted = None
-        self.inbound = None
-        self.landed = False
+        self.uniqueID = self.generate_unique_id()
+
+    def generate_unique_id(self):
+        uniqueID = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        while uniqueID in Airplane.unique_ids:
+            uniqueID = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+        Airplane.unique_ids.add(uniqueID)
+        return uniqueID
 
     def send_json(self, data, airplane_id=None):
         if airplane_id is None:
@@ -51,7 +60,7 @@ class Airplane(SocketConnection):
         self.y = round((self.y + self.velocity * math.sin(direction)), 0)
         self.z += self.velocity * math.sin(direction)
         self.z = round(self.z, 0)
-        data = {"data":"fly", "coordinates":{"x":self.x, "y":self.y, "z":self.z}}
+        data = {"data": "fly", "coordinates": {"x": self.x, "y": self.y, "z": self.z}}
         return data
 
     def fly_to_corridor_numpy(self, corridor_x, corridor_y, corridor_z):
