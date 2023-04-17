@@ -64,29 +64,56 @@ class Airplane(SocketConnection):
         return data
 
     def fly_to_corridor_numpy(self, corridor_x, corridor_y, corridor_z):
-        distance = np.linalg.norm(np.array([self.x, self.y, self.z])- np.array([corridor_x, corridor_y, corridor_z]))
-        print(f"Airplane {self.uniqueID} is {round(distance,0)} meters away from the corridor")
+        distance = self.calculate_distance(corridor_x, corridor_y, corridor_z)
+        logging.info(f"Airplane {self.uniqueID} is {round(distance, 0)} meters away from the corridor")
         time.sleep(1.5)
-        if distance <=100:
-            print(f"Airplane {self.uniqueID} has entered the corridor")
+
+        if distance <= 100:
+            self.handle_entered_corridor()
+            return self.send_landed_information()
+        else:
+            self.update_airplane_position(corridor_x, corridor_y, corridor_z, distance)
+            return self.send_inbound_coordinates()
+
+    def calculate_distance(self, x, y, z):
+        return np.linalg.norm(np.array([self.x, self.y, self.z]) - np.array([x, y, z]))
+
+    def handle_entered_corridor(self, corridor_x, corridor_y, corridor_z):
+        distance = self.calculate_distance(corridor_x, corridor_y, corridor_z)
+        logging.info(f"Airplane {self.uniqueID} is {round(distance, 0)} meters away from the corridor")
+        time.sleep(1.5)
+        if distance <= 100:
+            logging.info(f"Airplane {self.uniqueID} has entered the corridor")
             self.landed = True
-            data = {"data":"landed","coordinates": {"x":self.x, "y":self.y, "z":self.z}}
+            data = self.send_landed_information(corridor_x)
             return data
-        elif 100 < distance < 500:
+        else:
+            return None
+
+    def update_airplane_position(self, corridor_x, corridor_y, corridor_z, distance):
+        if 100 < distance < 500:
             self.velocity = random.randint(10, 50)
         else:
-            direction_vector = (np.array([corridor_x, corridor_y, corridor_z]) - np.array([self.x, self.y, self.z])) / distance
+            direction_vector = (np.array([corridor_x, corridor_y, corridor_z]) - np.array(
+                [self.x, self.y, self.z])) / distance
             self.x += self.velocity * direction_vector[0]
-            self.x = round(self.x,0)
+            self.x = round(self.x, 0)
             self.y += self.velocity * direction_vector[1]
             self.y = round(self.y, 0)
             self.z += self.velocity * direction_vector[2]
             self.z = round(self.z, 0)
             self.fuel -= 1
-            data = {"data": "inbound", "coordinates": {"x": self.x, "y": self.y, "z": self.z}}
             if self.fuel == 0:
-                print(f"Airplane {self.uniqueID} has run out of fuel and has collide")
-            return data
+                logging.error(f"Airplane {self.uniqueID} has run out of fuel and has collide")
+
+    def send_landed_information(self, corridor):
+        return {"data": "landed", "corridor": corridor}
+
+    def send_inbound_coordinates(self):
+        return {"data": "inbound", "coordinates": {"x": self.x, "y": self.y, "z": self.z}}
+
+
+
 
     def recieve_permission(self, data):
         if data:
