@@ -9,6 +9,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
+
 class UniqueIDGenerator:
     unique_ids = set()
 
@@ -16,13 +17,14 @@ class UniqueIDGenerator:
     def generate_unique_id(cls):
         uniqueId = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
         while uniqueId in cls.unique_ids:
-            uniqueID = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-        cls.unique_ids.add(uniqueID)
-        return uniqueID
+            uniqueId = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+        cls.unique_ids.add(uniqueId)
+        return uniqueId
+
 
 class AirplaneFlight:
-    def __init__(self, uniqueID, x, y, z, velocity, fuel):
-        self.uniqueID = uniqueID
+    def __init__(self, uniqueId, x, y, z, velocity, fuel):
+        self.uniqueId = uniqueId
         self.x = x
         self.y = y
         self.z = z
@@ -47,7 +49,7 @@ class AirplaneFlight:
             self.z = round(self.z, 0)
             self.fuel -= 1
             if self.fuel == 0:
-                logging.error(f"Airplane {self.uniqueID} has run out of fuel and has collide")
+                logging.error(f"Airplane {self.uniqueId} has run out of fuel and has collide")
 
     def fly_randomly(self):
         direction = random.randint(0, 360)
@@ -57,24 +59,23 @@ class AirplaneFlight:
         self.y = round(self.y, 0)
         self.z += self.velocity * math.sin(direction)
         self.z = round(self.z, 0)
-        return "fly", {"x": self.x, "y": self.y, "z": self.z}
+        return {"data": "fly", "x": self.x, "y": self.y, "z": self.z}
 
-    def fly_to_corridor_numpy(self, corridor_x, corridor_y, corridor_z):
+    def fly_to_corridor(self, corridor_x, corridor_y, corridor_z):
         distance = self.calculate_distance(corridor_x, corridor_y, corridor_z)
-        logging.info(f"Airplane {self.uniqueID} is {round(distance, 0)} meters away from the corridor")
+        logging.info(f"Airplane {self.uniqueId} is {round(distance, 0)} meters away from the corridor")
         time.sleep(1.5)
 
         if distance <= 100:
             self.handle_entered_corridor()
-            return "landed", {"x": self.x, "y": self.y, "z": self.z}
+            return {"data": "landed"}
         else:
             self.update_airplane_position(corridor_x, corridor_y, corridor_z, distance)
-            return "inbound", {"x": self.x, "y": self.y, "z": self.z}
+            return {"data": "inbound", "x": self.x, "y": self.y, "z": self.z}
 
     def handle_entered_corridor(self):
-        logging.info(f"Airplane {self.uniqueID} has entered the corridor")
+        logging.info(f"Airplane {self.uniqueId} has entered the corridor")
         self.landed = True
-
 
 
 class Airplane(SocketConnection):
@@ -87,63 +88,32 @@ class Airplane(SocketConnection):
         self.init_airplane_state()
         self.permission_granted = None
         self.inbound = None
-        self.landed = False
 
     def init_airplane_state(self):
-        self.x = random.randint(-5000, 5000)
-        self.y = random.randint(-5000, 5000)
-        self.z = random.randint(2000, 5000)
-        self.velocity = random.randint(50, 500)
-        self.direction = random.randint(0, 360)
-        self.fuel = random.randint(0, 1000)
-        self.uniqueID = self.generate_unique_id()
-
-    def generate_unique_id(self):
-        uniqueID = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        while uniqueID in Airplane.unique_ids:
-            uniqueID = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-        Airplane.unique_ids.add(uniqueID)
-        return uniqueID
+        x = random.randint(-5000, 5000)
+        y = random.randint(-5000, 5000)
+        z = random.randint(2000, 5000)
+        velocity = random.randint(50, 500)
+        fuel = random.randint(0, 1000)
+        uniqueID = UniqueIDGenerator.generate_unique_id()
+        self.airplane_flight = AirplaneFlight(uniqueID, x, y, z, velocity, fuel)
 
     def send_json(self, data, airplane_id=None):
         if airplane_id is None:
-            airplane_id = self.uniqueID
+            airplane_id = self.airplane_flight.uniqueId
         data_to_send = {"airplane_ID": airplane_id} | data
         json_data = json.dumps(data_to_send)
         self.socket.send(json_data.encode(self.encoder))
-        
+
     def recv_json(self):
-            data = self.socket.recv(self.buffer)
-            if data:
-                json_data = json.loads(data.decode(self.encoder))
-                return json_data
-            else:
-                self.socket.close()
-
-
-
-    def calculate_distance(self, x, y, z):
-        return np.linalg.norm(np.array([self.x, self.y, self.z]) - np.array([x, y, z]))
-
-    def handle_entered_corridor(self):
-        logging.info(f"Airplane {self.uniqueID} has entered the corridor")
-        self.landed = True
-
-    def update_airplane_position(self, corridor_x, corridor_y, corridor_z, distance):
-        if 100 < distance < 500:
-            self.velocity = random.randint(10, 50)
+        data = self.socket.recv(self.buffer)
+        if data:
+            json_data = json.loads(data.decode(self.encoder))
+            return json_data
         else:
-            direction_vector = (np.array([corridor_x, corridor_y, corridor_z]) - np.array(
-                [self.x, self.y, self.z])) / distance
-            self.x += self.velocity * direction_vector[0]
-            self.x = round(self.x, 0)
-            self.y += self.velocity * direction_vector[1]
-            self.y = round(self.y, 0)
-            self.z += self.velocity * direction_vector[2]
-            self.z = round(self.z, 0)
-            self.fuel -= 1
-            if self.fuel == 0:
-                logging.error(f"Airplane {self.uniqueID} has run out of fuel and has collide")
+            self.socket.close()
+
+
 
     def send_landed_information(self):
         return {"data": "landed", "coordinates": {"x": self.x, "y": self.y, "z": self.z}}
@@ -154,23 +124,23 @@ class Airplane(SocketConnection):
     def recieve_permission(self, data):
         if data:
             self.permission_granted = True
-            return True
         else:
             del self
-    
+
     def recieve_permisssion_for_inbounding(self, data):
         if data.get("message", '') == "permission granted":
             self.inbound = True
             return data
         else:
-            return False        
-        
+            return False
+
     def permission_to_aproach(self):
-        return {"data":"ask"}
-    
+        return {"data": "ask"}
+
     def send_permission_to_inbound(self):
-        return {"data":"inbound_request","coordinates":{"x":round(self.x,0), "y":round(self.y,0), "z": round(self.z, 0)}}
+        flight = self.airplane_flight
+        return {"data": "inbound_request",
+                "coordinates": {"x": round(flight.x, 0), "y": round(flight.y, 0), "z": round(flight.z, 0)}}
 
     def send_landed_information(self):
-        return {"data":"landed"}
-        
+        return {"data": "landed"}
