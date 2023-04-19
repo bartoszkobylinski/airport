@@ -7,7 +7,7 @@ import numpy as np
 from socket_connection import SocketConnection
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class UniqueIDGenerator:
@@ -35,21 +35,31 @@ class AirplaneFlight:
     def calculate_distance(self, x, y, z):
         return np.linalg.norm(np.array([self.x, self.y, self.z]) - np.array([x, y, z]))
 
+    def update_position(self, direction_vector):
+        self.x += self.velocity * direction_vector[0]
+        self.x = round(self.x, 0)
+        self.y += self.velocity * direction_vector[1]
+        self.y = round(self.y, 0)
+        self.z += self.velocity * direction_vector[2]
+        self.z = round(self.z, 0)
+
     def update_airplane_position(self, corridor_x, corridor_y, corridor_z, distance):
-        if 100 < distance < 500:
+        direction_vector = (np.array([corridor_x, corridor_y, corridor_z]) - np.array(
+            [self.x, self.y, self.z])) / distance
+
+        if 1000 > distance > 300:
             self.velocity = random.randint(10, 50)
+        elif 300 > distance > 150:
+            self.velocity = random.randint(5, 15)
+        elif distance < 150:
+            self.velocity = random.randint(3, 7)
         else:
-            direction_vector = (np.array([corridor_x, corridor_y, corridor_z]) - np.array(
-                [self.x, self.y, self.z])) / distance
-            self.x += self.velocity * direction_vector[0]
-            self.x = round(self.x, 0)
-            self.y += self.velocity * direction_vector[1]
-            self.y = round(self.y, 0)
-            self.z += self.velocity * direction_vector[2]
-            self.z = round(self.z, 0)
-            self.fuel -= 1
-            if self.fuel == 0:
-                logging.error(f"Airplane {self.uniqueId} has run out of fuel and has collide")
+            pass
+
+        self.update_position(direction_vector)
+        self.fuel -= 1
+        if self.fuel == 0:
+            logging.error(f"Airplane {self.uniqueId} has run out of fuel and has collide")
 
     def fly_randomly(self):
         direction = random.randint(0, 360)
@@ -59,19 +69,17 @@ class AirplaneFlight:
         self.y = round(self.y, 0)
         self.z += self.velocity * math.sin(direction)
         self.z = round(self.z, 0)
-        return {"data": "fly", "x": self.x, "y": self.y, "z": self.z}
+        return {"data": "execute_approach", "x": self.x, "y": self.y, "z": self.z}
 
     def fly_to_corridor(self, corridor_x, corridor_y, corridor_z):
         distance = self.calculate_distance(corridor_x, corridor_y, corridor_z)
         logging.info(f"Airplane {self.uniqueId} is {round(distance, 0)} meters away from the corridor")
-        time.sleep(1.5)
-
         if distance <= 100:
             self.handle_entered_corridor()
-            return {"data": "landed"}
+            return {"airplane_ID": self. uniqueId, "x_coordinates": corridor_x}
         else:
             self.update_airplane_position(corridor_x, corridor_y, corridor_z, distance)
-            return {"data": "inbound", "x": self.x, "y": self.y, "z": self.z}
+            return {"data": "execute_runway_approach", "x": self.x, "y": self.y, "z": self.z}
 
     def handle_entered_corridor(self):
         logging.info(f"Airplane {self.uniqueId} has entered the corridor")
@@ -84,6 +92,7 @@ class Airplane(SocketConnection):
     def __init__(self):
         super().__init__()
 
+        self.airplane_flight = None
         self.socket.connect((self.host, self.port))
         self.init_airplane_state()
         self.permission_granted = None
@@ -97,50 +106,32 @@ class Airplane(SocketConnection):
         fuel = random.randint(0, 1000)
         uniqueID = UniqueIDGenerator.generate_unique_id()
         self.airplane_flight = AirplaneFlight(uniqueID, x, y, z, velocity, fuel)
-
-    def send_json(self, data, airplane_id=None):
-        if airplane_id is None:
-            airplane_id = self.airplane_flight.uniqueId
-        data_to_send = {"airplane_ID": airplane_id} | data
-        json_data = json.dumps(data_to_send)
-        self.socket.send(json_data.encode(self.encoder))
-
-    def recv_json(self):
-        data = self.socket.recv(self.buffer)
-        if data:
-            json_data = json.loads(data.decode(self.encoder))
-            return json_data
-        else:
-            self.socket.close()
-
-
-
-    def send_landed_information(self):
-        return {"data": "landed", "coordinates": {"x": self.x, "y": self.y, "z": self.z}}
-
-    def send_inbound_coordinates(self):
-        return {"data": "inbound", "coordinates": {"x": self.x, "y": self.y, "z": self.z}}
-
-    def recieve_permission(self, data):
+    def request_landing_permission(self):
+        return {"data": "request_landing_permission"}
+    def receive_approach_permission(self, data):
         if data:
             self.permission_granted = True
         else:
             del self
+    def request_runway_permission(self):
+        return {"data": "request_runway_permission"}
 
-    def recieve_permisssion_for_inbounding(self, data):
+    def grant_permission_for_inbounding(self, data):
+        print(f"here you have data get from airport. We should have message and permission granted")
+        print(data)
         if data.get("message", '') == "permission granted":
             self.inbound = True
             return data
         else:
+            runway_1_status = data.get("data", '').get("1", '')
+            runway_2_status = data.get("data", '').get("2", '')
+            print(f" runway_1_status: {runway_1_status}, 2: {runway_2_status}")
             return False
 
-    def permission_to_aproach(self):
-        return {"data": "ask"}
-
-    def send_permission_to_inbound(self):
-        flight = self.airplane_flight
-        return {"data": "inbound_request",
-                "coordinates": {"x": round(flight.x, 0), "y": round(flight.y, 0), "z": round(flight.z, 0)}}
-
+    def extract_runway_coordinates(self, data):
+        runway_x = data.get("coordinates", '').get("x", '')
+        runway_y = data.get("coordinates", '').get("y", '')
+        runway_z = data.get("coordinates", '').get("z", '')
+        return runway_x, runway_y, runway_z
     def send_landed_information(self):
-        return {"data": "landed"}
+        return {"data": "confirm_landing"}
