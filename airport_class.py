@@ -55,7 +55,7 @@ class Airport(SocketConnection):
         elif action == "execute_runway_approach":
             return self.handle_inbound(data)
         elif action == "confirm_landing":
-            return self.handle_landed()
+            return self.handle_landed(data)
         else:
             return self.handle_unknown_action()
 
@@ -107,7 +107,8 @@ class Airport(SocketConnection):
         return message
     def handle_landed(self, data):
         airplane = data.get("airplane_ID", '')
-        self.airplanes.remove(airplane)
+        if airplane in self.airplanes:
+            self.airplanes.remove(airplane)
         coordinates = data.get("x_coordinates")
         print(f"this is coordinates of runway: {coordinates} and its type {type(coordinates)}")
         time.sleep(5)
