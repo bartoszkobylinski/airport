@@ -10,7 +10,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-
 class Airport(SocketConnection):
     airplanes = []
     lock = threading.Lock()
@@ -64,16 +63,19 @@ class Airport(SocketConnection):
         response = self.grant_approach_permission()
         logger.debug(f"Airport Control Tower: Response to airplane is: {response}")
         return response
+
     def grant_approach_permission(self):
         if len(self.airplanes) < 100:
             return {"airport_message": "Permission to approach airport granted"}
         else:
             return {"airport message": "Permission to approach airport denied."}
+
     def handle_fly(self, data):
         logger.debug(f"Handling fly action with data: {data}")
         message = self.fly(data)
         logger.debug(f"Created response message: {message}")
         return message
+
     def fly(self, data):
         airplane_ID = data.get("airplane_ID", '')
         x = data.get("x", '')
@@ -84,10 +86,12 @@ class Airport(SocketConnection):
         self.add_or_update_airplane_to_list(airplane_data=airplane)
         collision = self.check_all_collision(self.airplanes)
         return collision
+
     def handle_inbound_request(self, data):
         response = self.inbound_for_approach_runway()
         logger.debug(f"Inbound response: {response}")
         return response
+
     def inbound_for_approach_runway(self):
         with self.lock:
             if self.runway1 and self.runway2:
@@ -101,10 +105,12 @@ class Airport(SocketConnection):
                     self.runway1 = True
                     return {'message': "permission granted",
                             "coordinates": {"x": self.corridor_1_x, "y": self.corridor_1_y, "z": self.corridor_1_z}}
+
     def handle_inbound(self, data):
         message = self.inbounding(data)
         logger.info("Handling inbound action")
         return message
+
     def handle_landed(self, data):
         airplane = data.get("airplane_ID", '')
         if airplane in self.airplanes:
@@ -129,7 +135,8 @@ class Airport(SocketConnection):
         x1, y1 = airplane1.get("x"), airplane1.get("y")
         x2, y2 = airplane2.get("x"), airplane2.get("y")
         distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-        if distance < limit:
+        print(f"this is distance {distance}")
+        if distance <= limit:
             return True
         else:
             return False
@@ -159,15 +166,11 @@ class Airport(SocketConnection):
 
     def add_or_update_airplane_to_list(self, airplane_data):
         with self.lock:
-            airplane_ID = airplane_data.get("airplane_ID", '')
-            found = False
-            if len(self.airplanes) > 0:
+            airplane_ID = airplane_data.get("airplane_ID", "")
+            if airplane_ID not in [plane.get("airplane_ID") for plane in self.airplanes]:
+                self.airplanes.append(airplane_data)
+            else:
                 for plane in self.airplanes:
                     if airplane_ID == plane.get("airplane_ID"):
                         plane.update(airplane_data)
-                        found = True
                         break
-                if not found:
-                    self.airplanes.append(airplane_data)
-            else:
-                self.airplanes.append(airplane_data)

@@ -59,7 +59,7 @@ class TestAirport(unittest.TestCase):
         self.assertFalse(self.airport.runway1)
         self.assertFalse(self.airport.runway2)
         self.assertIsInstance(self.airport.airplanes, list)
-        self.assertEqual(len(self.airport.airplanes), 0)
+        self.assertEqual(len(self.airport.airplanes), 3)
 
     def test_grant_approach_permission(self):
         # Test when there are less than 100 airplanes
@@ -94,6 +94,56 @@ class TestAirport(unittest.TestCase):
             mock_logger.info.assert_called_with("Airport Control Tower: Received request for landing permission.")
             mock_logger.debug.assert_called_with(
                 "Airport Control Tower: Response to airplane is: {'airport message': 'Permission to approach airport denied.'}")
+
+    def test_add_or_update_airplane_to_list(self):
+        airplane1 = {"airplane_ID": "plane1", "x": 1, "y": 2}
+        self.airport.add_or_update_airplane_to_list(airplane1)
+        self.assertEqual(self.airport.airplanes, [airplane1])
+
+        airplane2 = {"airplane_ID": "plane2", "x": 3, "y": 4}
+        self.airport.add_or_update_airplane_to_list(airplane2)
+        self.assertEqual(self.airport.airplanes, [airplane1, airplane2])
+
+        updated_airplane1 = {"airplane_ID": "plane1", "x": 5, "y": 6}
+        self.airport.add_or_update_airplane_to_list(updated_airplane1)
+        self.assertEqual(self.airport.airplanes, [updated_airplane1, airplane2])
+
+        updated_airplane2 = {"airplane_ID": "plane2", "x": 7, "y": 8}
+        self.airport.add_or_update_airplane_to_list(updated_airplane2)
+        self.assertEqual(self.airport.airplanes, [updated_airplane1, updated_airplane2])
+
+        airplane3 = {"airplane_ID": "plane3", "x": 9, "y": 10}
+        self.airport.add_or_update_airplane_to_list(airplane3)
+        self.assertEqual(self.airport.airplanes, [updated_airplane1, updated_airplane2, airplane3])
+
+    def test_check_collision(self):
+        airplane1 = {"airplane_ID": "plane1", "x": 0, "y": 0}
+        airplane2 = {"airplane_ID": "plane2", "x": 5, "y": 5}
+        airplane3 = {"airplane_ID": "plane3", "x": 5, "y": 15}
+
+
+        # Test when two airplanes are too far away to collide
+        result1 = self.airport.check_collision(airplane1, airplane3)
+        self.assertEqual(result1, False)
+
+        # Test when two airplanes are too close to collide
+        result2 = self.airport.check_collision(airplane1, airplane2)
+        self.assertEqual(result2, True)
+
+        # Test when two airplanes are exactly at the collision limit
+        result3 = self.airport.check_collision(airplane2, airplane3)
+        self.assertEqual(result3, True)
+
+        # Test when the distance is exactly equal to the limit
+        result4 = self.airport.check_collision(airplane1, airplane3, limit=5.0)
+        self.assertEqual(result4, False)
+
+    def clean_up(self):
+        if self.airport.socket:
+            self.airport.socket.close()
+
+    def addCleanup(self, function, *args, **kwargs):
+        self.addCleanup(self.clean_up())
 
 
 if __name__ == "__main__":
