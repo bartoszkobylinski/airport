@@ -177,7 +177,55 @@ class TestAirport(unittest.TestCase):
         print(response)
         self.assertEqual(response["message"], "No collision detected")
 
+    def test_handle_inbound_request(self):
+        # Test when both runways are free
+        response1 = self.airport.handle_inbound_request({})
+        self.assertEqual(response1["message"], "permission granted")
+        self.assertIn("coordinates", response1)
 
+        # Test when runway1 is occupied
+        response2 = self.airport.handle_inbound_request({})
+        self.assertEqual(response2["message"], "permission granted")
+        self.assertIn("coordinates", response2)
+        self.assertNotEqual(response1["coordinates"], response2["coordinates"])
+
+        # Test when both runways are occupied
+        self.airport.runway1 = True
+        self.airport.runway2 = True
+        response3 = self.airport.handle_inbound_request({})
+        self.assertEqual(response3["message"], "permission denied")
+        self.assertIn("data", response3)
+        self.assertIn("1", response3["data"])
+        self.assertIn("2", response3["data"])
+
+        # Test when runway2 is free
+        self.airport.runway1 = True
+        self.airport.runway2 = False
+        response4 = self.airport.handle_inbound_request({})
+        self.assertEqual(response4["message"], "permission granted")
+        self.assertIn("coordinates", response4)
+        self.assertNotEqual(response4["coordinates"], response1["coordinates"])
+        self.assertEqual(response4["coordinates"], response2["coordinates"])
+
+    def test_handle_inbound(self):
+        # Test with valid data
+        airplane1 = {"airplane_ID": "plane1", "x": 1, "y": 2, "z": 3}
+        response1 = self.airport.handle_inbound(airplane1)
+        self.assertEqual(response1["message"], "ok for inbounding")
+        self.assertIn(airplane1, self.airport.airplanes)
+
+        # Test with an update to the same airplane
+        updated_airplane1 = {"airplane_ID": "plane1", "x": 4, "y": 5, "z": 6}
+        response2 = self.airport.handle_inbound(updated_airplane1)
+        self.assertEqual(response2["message"], "ok for inbounding")
+        self.assertIn(updated_airplane1, self.airport.airplanes)
+        self.assertNotIn(airplane1, self.airport.airplanes)
+
+        # Test with another airplane
+        airplane2 = {"airplane_ID": "plane2", "x": 7, "y": 8, "z": 9}
+        response3 = self.airport.handle_inbound(airplane2)
+        self.assertEqual(response3["message"], "ok for inbounding")
+        self.assertIn(airplane2, self.airport.airplanes)
 
     def clean_up(self):
         if self.airport.socket:

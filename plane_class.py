@@ -48,11 +48,11 @@ class AirplaneFlight:
             [self.x, self.y, self.z])) / distance
 
         if 1000 > distance > 300:
-            self.velocity = random.randint(10, 50)
-        elif 300 > distance > 150:
-            self.velocity = random.randint(5, 15)
-        elif distance < 150:
-            self.velocity = random.randint(3, 7)
+            self.velocity = 50 - 40 * (distance - 300) / 700
+        elif 300 >= distance > 150:
+            self.velocity = 15 - 10 * (distance - 150) / 150
+        elif distance <= 150:
+            self.velocity = 7 - 4 * distance / 150
         else:
             pass
 
