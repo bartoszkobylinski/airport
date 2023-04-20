@@ -59,7 +59,7 @@ class TestAirport(unittest.TestCase):
         self.assertFalse(self.airport.runway1)
         self.assertFalse(self.airport.runway2)
         self.assertIsInstance(self.airport.airplanes, list)
-        self.assertEqual(len(self.airport.airplanes), 3)
+        self.assertEqual(len(self.airport.airplanes), 5)
 
     def test_grant_approach_permission(self):
         # Test when there are less than 100 airplanes
@@ -152,6 +152,32 @@ class TestAirport(unittest.TestCase):
         # Test when there is no collision
         result2 = self.airport.check_all_collision(airplanes, limit=4)
         self.assertIn("No collision detected", result2["message"])
+
+    def test_fly_valid_data(self):
+        airplane_data = {
+            "airplane_ID": "A123",
+            "x": 10000,
+            "y": 20000,
+            "z": 30000
+        }
+        another_airplane_data = {
+            "airplane_ID": "A234",
+            "x": 400,
+            "y": 2500,
+            "z": 400
+        }
+        self.airport.airplanes.append(airplane_data)
+        self.airport.airplanes.append(another_airplane_data)
+        response = self.airport.fly(airplane_data)
+        airplane = [plane for plane in self.airport.airplanes if plane["airplane_ID"] == "A123"][0]
+        self.assertEqual(airplane["airplane_ID"], "A123")
+        self.assertEqual(airplane["x"], 10000)
+        self.assertEqual(airplane["y"], 20000)
+        self.assertEqual(airplane["z"], 30000)
+        print(response)
+        self.assertEqual(response["message"], "No collision detected")
+
+
 
     def clean_up(self):
         if self.airport.socket:

@@ -78,13 +78,13 @@ class Airport(SocketConnection):
 
     def fly(self, data):
         airplane_ID = data.get("airplane_ID", '')
-        x = data.get("x", '')
-        y = data.get("y", '')
-        z = data.get("z", '')
+        x = int(data.get("x", '')) if "x" in data else ''
+        y = int(data.get("y", '')) if "y" in data else ''
+        z = int(data.get("z", '')) if "z" in data else ''
         airplane = dict()
         airplane.update(airplane_ID=airplane_ID, x=x, y=y, z=z)
         self.add_or_update_airplane_to_list(airplane_data=airplane)
-        collision = self.check_all_collision(self.airplanes)
+        collision = self.check_all_collision(self.airplanes, specific_airplane=airplane)
         return collision
 
     def handle_inbound_request(self, data):
@@ -134,6 +134,8 @@ class Airport(SocketConnection):
     def check_collision(self, airplane1, airplane2, limit=10):
         x1, y1 = airplane1.get("x"), airplane1.get("y")
         x2, y2 = airplane2.get("x"), airplane2.get("y")
+        if not (isinstance(x1, int) and isinstance(y1, int) and isinstance(x2, int) and isinstance(y2, int)):
+            return False
         distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
         print(f"this is distance {distance}")
         if distance <= limit:
@@ -141,15 +143,22 @@ class Airport(SocketConnection):
         else:
             return False
 
-    def check_all_collision(self, airplanes, limit=10):
+    def check_all_collision(self, airplanes, limit=10, specific_airplane=None):
+        if specific_airplane is None:
+            specific_airplane_check = False
+        else:
+            specific_airplane_check = True
+
         for i in range(len(airplanes)):
             for j in range(i + 1, len(airplanes)):
+                if specific_airplane_check:
+                    if airplanes[i] != specific_airplane and airplanes[j] != specific_airplane:
+                        continue
+
                 if self.check_collision(airplanes[i], airplanes[j], limit=limit):
                     print("Airplanes collide")
                     message = {"message": "collision!", "airplane-1": airplanes[i], "airplane-2": airplanes[j]}
                     return message
-                else:
-                    continue
         return {"message": "No collision detected"}
 
     def inbounding(self, data):
