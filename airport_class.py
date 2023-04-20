@@ -71,7 +71,7 @@ class Airport(SocketConnection):
             return {"airport message": "Permission to approach airport denied."}
 
     def handle_fly(self, data):
-        logger.debug(f"Handling fly action with data: {data}")
+        logger.debug(f"Handling fly action with TTTTTTT data: {data}")
         message = self.fly(data)
         logger.debug(f"Created response message: {message}")
         return message

@@ -138,6 +138,21 @@ class TestAirport(unittest.TestCase):
         result4 = self.airport.check_collision(airplane1, airplane3, limit=5.0)
         self.assertEqual(result4, False)
 
+    def test_check_all_collision(self):
+        airplanes = [
+            {"airplane_ID": "plane1", "x": 0, "y": 0},
+            {"airplane_ID": "plane2", "x": 5, "y": 5},
+            {"airplane_ID": "plane3", "x": 5, "y": 15}
+        ]
+
+        # Test when there is a collision
+        result1 = self.airport.check_all_collision(airplanes, limit=10)
+        self.assertIn("collision!", result1["message"])
+
+        # Test when there is no collision
+        result2 = self.airport.check_all_collision(airplanes, limit=4)
+        self.assertIn("No collision detected", result2["message"])
+
     def clean_up(self):
         if self.airport.socket:
             self.airport.socket.close()
