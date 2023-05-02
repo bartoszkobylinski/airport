@@ -23,7 +23,7 @@ class UniqueIDGenerator:
 
 
 class AirplaneFlight:
-    def __init__(self, uniqueId, x, y, z, velocity, fuel):
+    def __init__(self, uniqueId, x, y, z, velocity, fuel, airplane_instance):
         self.uniqueId = uniqueId
         self.x = x
         self.y = y
@@ -31,6 +31,7 @@ class AirplaneFlight:
         self.velocity = velocity
         self.fuel = fuel
         self.landed = False
+        self.airplane_instance = airplane_instance
 
     def calculate_distance(self, x, y, z):
         return np.linalg.norm(np.array([self.x, self.y, self.z]) - np.array([x, y, z]))
@@ -76,8 +77,8 @@ class AirplaneFlight:
         logging.info(f"Airplane {self.uniqueId} is {round(distance, 0)} meters away from the corridor")
         if distance <= 100:
             self.handle_entered_corridor()
-
-            return {"airplane_ID": self. uniqueId, "x_coordinates": corridor_x}
+            landed_information = self.airplane_instance.send_landed_information()
+            return {"airplane_ID": self. uniqueId, "x_coordinates": corridor_x, **landed_information}
         else:
             self.update_airplane_position(corridor_x, corridor_y, corridor_z, distance)
             return {"data": "execute_runway_approach", "x": self.x, "y": self.y, "z": self.z}
@@ -106,7 +107,7 @@ class Airplane(SocketConnection):
         velocity = random.randint(50, 500)
         fuel = random.randint(0, 1000)
         uniqueID = UniqueIDGenerator.generate_unique_id()
-        self.airplane_flight = AirplaneFlight(uniqueID, x, y, z, velocity, fuel)
+        self.airplane_flight = AirplaneFlight(uniqueID, x, y, z, velocity, fuel, self)
     def request_landing_permission(self):
         return {"data": "request_landing_permission"}
     def receive_approach_permission(self, data):

@@ -52,10 +52,7 @@ def main(airplane):
                     print(f"airplane landed: {airplane.airplane_flight.landed}")
                     if airplane.airplane_flight.landed:
                         print(f"waiting two seconds {time.sleep(2)}")
-                        #  message = {"data": "landed", "corridor": corridor_coordinates.get("data").get("x")}
-                        #  print(f"I've created message {message}")
                         time.sleep(2)
-                        #  airplane.send_json(message)
                         airplane.socket.close()
                         break
                     else:

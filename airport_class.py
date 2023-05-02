@@ -113,12 +113,13 @@ class Airport(SocketConnection):
 
     def handle_landed(self, data):
         airplane = data.get("airplane_ID", '')
-        print(f"!!!!!!!!!!!: airplane {airplane}")
+        print(f"!!!!!!!!!!!: airplane {airplane} and {self.airplanes}")
         if airplane in self.airplanes:
             print(f"self.airplanes: {self.airplanes}")
             self.airplanes.remove(airplane)
             print(f"airplane: {airplane} should be removed from airplanes: {self.airplanes}")
         coordinates = data.get("x_coordinates")
+        print(f"airplanes: {self.airplanes}")
         print(f"this is coordinates of runway: {coordinates} and its type {type(coordinates)}")
         time.sleep(5)
         with self.lock:
@@ -127,6 +128,7 @@ class Airport(SocketConnection):
             elif coordinates == self.corridor_2_x:
                 self.runway2 = False
         logger.info("Airplane landed successfully")
+        print(f"runways: {self.runway1, self.runway2}")
         return {"message": "Airplane landed"}
 
     def handle_unknown_action(self, data):
