@@ -45,18 +45,18 @@ class Airport(SocketConnection):
                 break
 
     def process_action(self, action, data):
-        if action == "request_landing_permission":
-            return self.process_landing_permission_request()
-        elif action == "execute_approach":
-            return self.handle_fly(data)
-        elif action == "request_runway_permission":
-            return self.handle_inbound_request(data)
-        elif action == "execute_runway_approach":
-            return self.handle_inbound(data)
-        elif action == "confirm_landing":
-            return self.handle_landed(data)
+        action_to_function = {
+            "request_landing_permission": (self.process_landing_permission_request, False),
+            "execute_approach": (self.handle_fly, True),
+            "request_runway_permission": (self.handle_inbound_request, True),
+            "execute_runway_approach": (self.handle_inbound, True),
+            "confirm_landing": (self.handle_landed, True)
+        }
+        func, requires_data = action_to_function.get(action, (self.handle_unknown_action, True))
+        if requires_data:
+            return func(data)
         else:
-            return self.handle_unknown_action()
+            return func()
 
     def process_landing_permission_request(self):
         logger.info("Airport Control Tower: Received request for landing permission.")
@@ -126,7 +126,7 @@ class Airport(SocketConnection):
         logger.info("Airplane landed successfully")
         return {"message": "Airplane landed"}
 
-    def handle_unknown_action(self):
+    def handle_unknown_action(self, data):
         logger.warning("Airplane sent message with no case statement")
         response = {"message": "Response: message received"}
         return response

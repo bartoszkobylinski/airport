@@ -6,13 +6,16 @@ import time
 
 class SocketConnection(socket.socket):
 
-    def __init__(self, port=9452, host='127.0.0.1', encoder='utf-8', buffer=2048):
+    def __init__(self, port=10452, host='127.0.0.1', encoder='utf-8', buffer=2048, socket_instance=None):
         super().__init__()
         self.host = host
         self.port = port
         self.encoder = encoder
         self.buffer = buffer
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if socket_instance is None:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        else:
+            self.socket = socket_instance
 
     def send_json(self, data, custom_socket=None, airplane_id=None):
         if custom_socket is None:

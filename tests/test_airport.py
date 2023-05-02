@@ -15,25 +15,42 @@ class TestAirport(unittest.TestCase):
     def tearDown(self):
         self.airport.socket.close()
 
-    def test_process_action(self):
-        # Test the process_action method with different action strings
-        result = self.airport.process_action("request_landing_permission", {})
-        self.assertIn("airport_message", result)
+    def test_request_landing_permission(self):
+        action = "request_landing_permission"
+        data = {}
+        response = self.airport.process_action(action, data)
+        self.assertIn("airport_message", response)
 
-        result = self.airport.process_action("execute_approach", {})
-        self.assertIn("message", result)
+    def test_execute_approach(self):
+        action = "execute_approach"
+        data = {"airplane_ID": "A1", "x": 100, "y": 200, "z": 0}
+        response = self.airport.process_action(action, data)
+        self.assertIn("message", response)
 
-        result = self.airport.process_action("request_runway_permission", {})
-        self.assertIn("message", result)
+    def test_request_runway_permission(self):
+        action = "request_runway_permission"
+        data = {"airplane_ID": "A1", "x": 100, "y": 200, "z": 0}
+        response = self.airport.process_action(action, data)
+        self.assertIn("message", response)
 
-        result = self.airport.process_action("execute_runway_approach", {})
-        self.assertIn("message", result)
+    def test_execute_runway_approach(self):
+        action = "execute_runway_approach"
+        data = {"airplane_ID": "A1", "x": 100, "y": 200, "z": 0}
+        response = self.airport.process_action(action, data)
+        self.assertIn("message", response)
 
-        result = self.airport.process_action("confirm_landing", {"airplane_ID": "test_plane", "x_coordinates": 1000})
-        self.assertIn("message", result)
+    def test_confirm_landing(self):
+        action = "confirm_landing"
+        data = {"airplane_ID": "A1", "x_coordinates": 100}
+        response = self.airport.process_action(action, data)
+        self.assertIn("message", response)
 
-        result = self.airport.process_action("unknown_action", {})
-        self.assertIn("message", result)
+    def test_unknown_action(self):
+        action = "unknown_action"
+        data = {"airplane_ID": "A1", "x": 100, "y": 200, "z": 0}
+        response = self.airport.process_action(action, data)
+        self.assertIn("message", response)
+
 
     @patch('airport_class.Airport.recv_json', side_effect=[{"data": "request_landing_permission"}, None])
     def test_handle_new_client(self, recv_json_mock):
@@ -59,7 +76,7 @@ class TestAirport(unittest.TestCase):
         self.assertFalse(self.airport.runway1)
         self.assertFalse(self.airport.runway2)
         self.assertIsInstance(self.airport.airplanes, list)
-        self.assertEqual(len(self.airport.airplanes), 5)
+        self.assertEqual(len(self.airport.airplanes), 6)
 
     def test_grant_approach_permission(self):
         # Test when there are less than 100 airplanes

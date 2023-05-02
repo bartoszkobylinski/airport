@@ -89,8 +89,8 @@ class AirplaneFlight:
 class Airplane(SocketConnection):
     unique_ids = set()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, socket=None):
+        super().__init__(socket_instance=socket)
 
         self.airplane_flight = None
         self.socket.connect((self.host, self.port))
