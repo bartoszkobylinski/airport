@@ -76,6 +76,7 @@ class AirplaneFlight:
         logging.info(f"Airplane {self.uniqueId} is {round(distance, 0)} meters away from the corridor")
         if distance <= 100:
             self.handle_entered_corridor()
+
             return {"airplane_ID": self. uniqueId, "x_coordinates": corridor_x}
         else:
             self.update_airplane_position(corridor_x, corridor_y, corridor_z, distance)

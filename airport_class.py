@@ -113,8 +113,11 @@ class Airport(SocketConnection):
 
     def handle_landed(self, data):
         airplane = data.get("airplane_ID", '')
+        print(f"!!!!!!!!!!!: airplane {airplane}")
         if airplane in self.airplanes:
+            print(f"self.airplanes: {self.airplanes}")
             self.airplanes.remove(airplane)
+            print(f"airplane: {airplane} should be removed from airplanes: {self.airplanes}")
         coordinates = data.get("x_coordinates")
         print(f"this is coordinates of runway: {coordinates} and its type {type(coordinates)}")
         time.sleep(5)
@@ -169,8 +172,11 @@ class Airport(SocketConnection):
         airplane = dict()
         airplane.update(airplane_ID=airplane_ID, x=x, y=y, z=z)
         self.add_or_update_airplane_to_list(airplane_data=airplane)
-        response = {"message": "ok for inbounding"}
-        self.check_all_collision(self.airplanes)
+        collision_status = self.check_all_collision(self.airplanes, specific_airplane=airplane)
+        if collision_status["message"] == "No collision detected":
+            response = {"message": "ok for inbounding"}
+        else:
+            response = collision_status
         return response
 
     def add_or_update_airplane_to_list(self, airplane_data):

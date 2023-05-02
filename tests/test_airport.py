@@ -56,9 +56,7 @@ class TestAirport(unittest.TestCase):
     def test_handle_new_client(self, recv_json_mock):
         client_socket_mock = MagicMock()
         self.airport.send_json = MagicMock()
-
         self.airport.handle_new_client(client_socket_mock)
-
         recv_json_mock.assert_called()
         self.airport.send_json.assert_called()
 
@@ -227,22 +225,33 @@ class TestAirport(unittest.TestCase):
     def test_handle_inbound(self):
         # Test with valid data
         airplane1 = {"airplane_ID": "plane1", "x": 1, "y": 2, "z": 3}
-        response1 = self.airport.handle_inbound(airplane1)
+        response1 = self.airport.inbounding(airplane1)
+        print("response1:", response1)
         self.assertEqual(response1["message"], "ok for inbounding")
         self.assertIn(airplane1, self.airport.airplanes)
 
         # Test with an update to the same airplane
         updated_airplane1 = {"airplane_ID": "plane1", "x": 4, "y": 5, "z": 6}
-        response2 = self.airport.handle_inbound(updated_airplane1)
+        response2 = self.airport.inbounding(updated_airplane1)
         self.assertEqual(response2["message"], "ok for inbounding")
         self.assertIn(updated_airplane1, self.airport.airplanes)
         self.assertNotIn(airplane1, self.airport.airplanes)
 
-        # Test with another airplane
-        airplane2 = {"airplane_ID": "plane2", "x": 7, "y": 8, "z": 9}
-        response3 = self.airport.handle_inbound(airplane2)
+        # Test with another airplane (no collision)
+        airplane2 = {"airplane_ID": "plane2", "x": 20, "y": 8, "z": 9}
+        response3 = self.airport.inbounding(airplane2)
         self.assertEqual(response3["message"], "ok for inbounding")
         self.assertIn(airplane2, self.airport.airplanes)
+
+        # Test with another airplane (collision)
+        airplane3 = {"airplane_ID": "plane3", "x": 5, "y": 6, "z": 7}
+        response4 = self.airport.inbounding(airplane3)
+        print("response4", response4)
+        self.assertEqual(response4["message"], "collision!")
+        self.assertIn("airplane-1", response4)
+        self.assertIn("airplane-2", response4)
+        self.assertEqual(response4["airplane-1"]["airplane_ID"], "plane1")
+        self.assertEqual(response4["airplane-2"]["airplane_ID"], "plane3")
 
     def clean_up(self):
         if self.airport.socket:
