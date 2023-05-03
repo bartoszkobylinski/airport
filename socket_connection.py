@@ -1,3 +1,4 @@
+import logging
 import socket
 import struct
 import json
@@ -23,29 +24,30 @@ class SocketConnection(socket.socket):
         if airplane_id is not None:
             data = {"airplane_ID": airplane_id} | data
         json_data = json.dumps(data).encode(self.encoder)
-
-        # Add the length of the JSON data
         length = struct.pack('>I', len(json_data))
         time.sleep(1)
-        custom_socket.sendall(length)
-        custom_socket.sendall(json_data)
+        try:
+            custom_socket.sendall(length)
+            custom_socket.sendall(json_data)
+        except BrokenPipeError:
+            logging.error("The connection was closed by the other side")
 
     def recv_json(self, custom_socket=None):
         if custom_socket is None:
             custom_socket = self.socket
-        # Receive the length of the JSON data
-        length_data = self._recvall(custom_socket, 4)
-        if not length_data:
-            custom_socket.close()
-            return None
 
-        length = struct.unpack('>I', length_data)[0]
-        data = self._recvall(custom_socket, length)
-        if data:
-            json_data = json.loads(data.decode(self.encoder))
-            return json_data
-        else:
-            custom_socket.close()
+        try:
+            length_data = self._recvall(custom_socket, 4)
+            if length_data is None:
+                return None
+            length = struct.unpack('>I', length_data)[0]
+            json_data = self._recvall(custom_socket, length)
+            if json_data is None:
+                return None
+            data = json.loads(json_data.decode(self.encoder))
+            return data
+        except ConnectionResetError:
+            logging.error("The connection was reset by the other side.")
             return None
 
     def _recvall(self, custom_socket, n):

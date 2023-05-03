@@ -5,7 +5,8 @@ airplane = Airplane()
 
 
 def main(airplane):
-    while True:
+    keep_running = True
+    while keep_running:
         if airplane:
             landing_permission_message = airplane.request_landing_permission()
             print(f"this is permission_for_landing: {landing_permission_message}")
@@ -28,6 +29,7 @@ def main(airplane):
                 elif server_message is None:
                     print("Server closed the connection")
                     airplane.socket.close()
+                    keep_running = False
                     break
                 print(f"Server has sent me this: {server_message}")
                 time.sleep(1)
@@ -54,6 +56,7 @@ def main(airplane):
                         print(f"waiting two seconds {time.sleep(2)}")
                         time.sleep(2)
                         airplane.socket.close()
+                        keep_running = False
                         break
                     else:
                         airplane_coordinates = airplane.airplane_flight.fly_to_corridor(
