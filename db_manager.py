@@ -22,12 +22,17 @@ class DB_Manager:
                         y REAL,
                         z REAL,
                         fuel INTEGER,
-                        status TEXT CHECK(status IN ('accepted for approach',
-                                                       'rejected for approach',
+                        status TEXT CHECK(status IN ('rejected for approach',
                                                        'approaching',
                                                        'inbounding to runway',
                                                        'landed',
                                                        'collided')))''')
         self.connection.commit()
+
+    def add_row(self, **kwargs):
+        cursor = self.connection.cursor()
+        cursor.execute(""" INSERT INTO airplanes VALUES (
+        )
+        """)
 
 

@@ -8,6 +8,11 @@ from socket_connection import SocketConnection
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+file_handler = logging.FileHandler("airport.log")
+file_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 
 class Airport(SocketConnection):
@@ -36,9 +41,12 @@ class Airport(SocketConnection):
             logger.debug(f"Received data: {data}")
             if data:
                 action = data.get('data', '')
+                logger.critical(data)
+                time.sleep(1)
+
                 logger.debug(f"Action received: {action}")
                 response = self.process_action(action, data)
-                self.send_json(response, custom_socket=client_socket)  # Corrected call
+                self.send_json(response, custom_socket=client_socket)
             else:
                 logger.warning("Received data has None value")
                 client_socket.close()
@@ -113,14 +121,9 @@ class Airport(SocketConnection):
 
     def handle_landed(self, data):
         airplane = data.get("airplane_ID", '')
-        print(f"!!!!!!!!!!!: airplane {airplane} and {self.airplanes}")
         if airplane in self.airplanes:
-            print(f"self.airplanes: {self.airplanes}")
             self.airplanes.remove(airplane)
-            print(f"airplane: {airplane} should be removed from airplanes: {self.airplanes}")
         coordinates = data.get("x_coordinates")
-        print(f"airplanes: {self.airplanes}")
-        print(f"this is coordinates of runway: {coordinates} and its type {type(coordinates)}")
         time.sleep(5)
         with self.lock:
             if coordinates == self.corridor_1_x:
@@ -128,7 +131,6 @@ class Airport(SocketConnection):
             elif coordinates == self.corridor_2_x:
                 self.runway2 = False
         logger.info("Airplane landed successfully")
-        print(f"runways: {self.runway1, self.runway2}")
         return {"message": "Airplane landed"}
 
     def handle_unknown_action(self, data):
@@ -142,7 +144,6 @@ class Airport(SocketConnection):
         if not (isinstance(x1, int) and isinstance(y1, int) and isinstance(x2, int) and isinstance(y2, int)):
             return False
         distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-        print(f"this is distance {distance}")
         if distance <= limit:
             return True
         else:
