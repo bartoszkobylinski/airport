@@ -41,7 +41,7 @@ class Airport(SocketConnection):
             logger.debug(f"Received data: {data}")
             if data:
                 action = data.get('data', '')
-                logger.critical(data)
+                #logger.critical(data)
                 time.sleep(1)
 
                 logger.debug(f"Action received: {action}")
@@ -54,7 +54,7 @@ class Airport(SocketConnection):
 
     def process_action(self, action, data):
         action_to_function = {
-            "request_landing_permission": (self.process_landing_permission_request, False),
+            "request_landing_permission": (self.process_landing_permission_request, True),
             "execute_approach": (self.handle_fly, True),
             "request_runway_permission": (self.handle_inbound_request, True),
             "execute_runway_approach": (self.handle_inbound, True),
@@ -66,17 +66,22 @@ class Airport(SocketConnection):
         else:
             return func()
 
-    def process_landing_permission_request(self):
-        logger.info("Airport Control Tower: Received request for landing permission.")
-        response = self.grant_approach_permission()
-        logger.debug(f"Airport Control Tower: Response to airplane is: {response}")
+    def process_landing_permission_request(self, data):
+        #logger.info("Airport Control Tower: Received request for landing permission.")
+        response = self.grant_approach_permission(data)
+        #logger.debug(f"Airport Control Tower: Response to airplane is: {response}")
         return response
 
-    def grant_approach_permission(self):
-        if len(self.airplanes) < 100:
-            return {"airport_message": "Permission to approach airport granted"}
-        else:
-            return {"airport message": "Permission to approach airport denied."}
+    def grant_approach_permission(self, data):
+        with self.lock:
+            if len(self.airplanes) < 100:
+                airplane = data.get("airplane_ID")
+                print(f"this is the name of airplane aproaching airport: {airplane}")
+                self.airplanes.append(airplane)
+                print(f"this is the list of airplanes: {self.airplanes}")
+                return {"airport_message": "Permission to approach airport granted"}
+            else:
+                return False
 
     def handle_fly(self, data):
         logger.debug(f"Handling fly action with TTTTTTT data: {data}")
@@ -91,7 +96,7 @@ class Airport(SocketConnection):
         z = int(data.get("z", '')) if "z" in data else ''
         airplane = dict()
         airplane.update(airplane_ID=airplane_ID, x=x, y=y, z=z)
-        self.add_or_update_airplane_to_list(airplane_data=airplane)
+        # self.add_or_update_airplane_to_list(airplane_data=airplane)
         collision = self.check_all_collision(self.airplanes, specific_airplane=airplane)
         return collision
 
@@ -116,7 +121,7 @@ class Airport(SocketConnection):
 
     def handle_inbound(self, data):
         message = self.inbounding(data)
-        logger.info("Handling inbound action")
+        #logger.info("Handling inbound action")
         return message
 
     def handle_landed(self, data):
@@ -174,7 +179,7 @@ class Airport(SocketConnection):
         z = data.get("z", '')
         airplane = dict()
         airplane.update(airplane_ID=airplane_ID, x=x, y=y, z=z)
-        self.add_or_update_airplane_to_list(airplane_data=airplane)
+        # self.add_or_update_airplane_to_list(airplane_data=airplane)
         collision_status = self.check_all_collision(self.airplanes, specific_airplane=airplane)
         if collision_status["message"] == "No collision detected":
             response = {"message": "ok for inbounding"}

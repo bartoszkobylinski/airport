@@ -128,10 +128,8 @@ class Airplane(SocketConnection):
         return {"data": "request_landing_permission", **airplane_data}
 
     def receive_approach_permission(self, data):
-        if data:
+        if data.get("airport_message", '') == "Permission to approach airport granted":
             self.permission_granted = True
-        else:
-            del self
 
     def request_runway_permission(self):
         airplane_data = self.airplane_flight.get_airplane_data()
