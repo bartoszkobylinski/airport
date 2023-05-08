@@ -1,4 +1,4 @@
-import time
+
 from plane_class import Airplane
 
 airplane = Airplane()
@@ -106,4 +106,3 @@ def main(airplane):
                             runway_coordinates[0], runway_coordinates[1], runway_coordinates[2])
                         airplane.send_json(airplane_coordinates)
                     '''
-

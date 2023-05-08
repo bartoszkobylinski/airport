@@ -10,18 +10,6 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-class UniqueIDGenerator:
-    unique_ids = set()
-
-    @classmethod
-    def generate_unique_id(cls):
-        uniqueId = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        while uniqueId in cls.unique_ids:
-            uniqueId = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-        cls.unique_ids.add(uniqueId)
-        return uniqueId
-
-
 class AirplaneFlight:
     def __init__(self, uniqueId, x, y, z, velocity, fuel, airplane_instance):
         self.uniqueId = uniqueId
@@ -90,7 +78,7 @@ class AirplaneFlight:
         if distance <= 100:
             self.handle_entered_corridor()
             landed_information = self.airplane_instance.send_landed_information()
-            return {"airplane_ID": self. uniqueId, "x_coordinates": corridor_x, **landed_information, **airplane_data}
+            return {"airplane_ID": self.uniqueId, "x_coordinates": corridor_x, **landed_information, **airplane_data}
         else:
             self.update_airplane_position(corridor_x, corridor_y, corridor_z, distance)
             return {"data": "execute_runway_approach", **airplane_data}
