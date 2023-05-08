@@ -16,6 +16,8 @@ logger.addHandler(file_handler)
 
 
 class Airport(SocketConnection):
+    CORRIDOR_1_COORDS = (1000, 2000, 0)
+    CORRIDOR_2_COORDS = (4000, 2000, 0)
     airplanes = []
     lock = threading.Lock()
 
@@ -23,18 +25,19 @@ class Airport(SocketConnection):
         super().__init__()
         self.socket.bind((self.host, self.port))
         self.socket.listen()
-        self.runway1 = False
-        self.runway2 = False
         self.x = 0
         self.y = 0
         self.z = 0
+        self.airplanes = []
+        self.runways = {1: False, 2: False}
+        '''
         self.corridor_1_x = 1000
         self.corridor_1_y = 2000
         self.corridor_1_z = 0
         self.corridor_2_x = 4000
         self.corridor_2_y = 2000
         self.corridor_2_z = 0
-
+        '''
     def handle_new_client(self, client_socket):
         while True:
             data = self.recv_json(client_socket)
@@ -107,17 +110,19 @@ class Airport(SocketConnection):
 
     def inbound_for_approach_runway(self):
         with self.lock:
-            if self.runway1 and self.runway2:
-                return {"message": "permission denied", "data": {"1": self.runway1, "2": self.runway2}}
-            else:
-                if self.runway1:
-                    self.runway2 = True
+            for runway_number, is_occupied in self.runways.items():
+                if not is_occupied:
+                    self.runways[runway_number] = True
+                    corridor_coords = self.get_corridor_coordinates(runway_number)
                     return {'message': "permission granted",
-                            "coordinates": {"x": self.corridor_2_x, "y": self.corridor_2_y, "z": self.corridor_2_z}}
-                else:
-                    self.runway1 = True
-                    return {'message': "permission granted",
-                            "coordinates": {"x": self.corridor_1_x, "y": self.corridor_1_y, "z": self.corridor_1_z}}
+                            "coordinates": {"x": corridor_coords[0], "y": corridor_coords[1], "z": corridor_coords[2]}}
+            return {"message": "permission denied", "data": self.runways}
+
+    def get_corridor_coordinates(self, runway_number):
+        if runway_number == 1:
+            return self.CORRIDOR_1_COORDS
+        elif runway_number == 2:
+            return self.CORRIDOR_2_COORDS
 
     def handle_inbound(self, data):
         message = self.inbounding(data)
@@ -125,18 +130,20 @@ class Airport(SocketConnection):
         return message
 
     def handle_landed(self, data):
-        airplane = data.get("airplane_ID", '')
-        if airplane in self.airplanes:
-            self.airplanes.remove(airplane)
+        airplane_id = data.get("airplane_ID", '')
+        self.remove_airplane_by_id(airplane_id)
         coordinates = data.get("x_coordinates")
         time.sleep(5)
         with self.lock:
-            if coordinates == self.corridor_1_x:
-                self.runway1 = False
-            elif coordinates == self.corridor_2_x:
-                self.runway2 = False
+            for runway_number, (corridor_x, _, _) in enumerate([self.CORRIDOR_1_COORDS, self.CORRIDOR_2_COORDS], start=1):
+                if coordinates == corridor_x:
+                    self.runways[runway_number] = False
         logger.info("Airplane landed successfully")
         return {"message": "Airplane landed"}
+
+    def remove_airplane_by_id(self, airplane_id):
+        with self.lock:
+            self.airplanes = [airplane for airplane in self.airplanes if airplane.airplane_id != airplane_id]
 
     def handle_unknown_action(self, data):
         logger.warning("Airplane sent message with no case statement")
