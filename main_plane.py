@@ -1,108 +1,64 @@
-
 from plane_class import Airplane
 
 airplane = Airplane()
 
 
-def handle_landing_permission(airplane):
-    landing_permission_message = airplane.request_landing_permission()
-    airplane.send_json(landing_permission_message)
-    message = airplane.recv_json()
-    airplane.receive_approach_permission(message)
-    print()
+def handle_landing_permission(plane):
+    landing_permission_message = plane.request_landing_permission()
+    plane.send_json(landing_permission_message)
+    message = plane.recv_json()
+    plane.receive_approach_permission(message)
 
 
-def fly_randomly_and_handle_collisions(airplane):
-    message = airplane.airplane_flight.fly_randomly()
-    airplane.send_json(message)
-    airport_message = airplane.recv_json()
+def fly_randomly_and_handle_collisions(plane):
+    message = plane.airplane_flight.fly_randomly()
+    plane.send_json(message)
+    airport_message = plane.recv_json()
     if airport_message.get("message", '') == "collision!":
         return True
     elif airport_message is None:
         print("Airport closed the connection")
-        airplane.socket.close()
+        plane.socket.close()
         return True
     return False
 
 
-def request_runway_permission_and_inbound(airplane):
-    message = airplane.request_runway_permission()
-    airplane.send_json(message)
-    airport_message = airplane.recv_json()
+def request_runway_permission_and_inbound(plane):
+    message = plane.request_runway_permission()
+    plane.send_json(message)
+    airport_message = plane.recv_json()
     if airport_message.get("message", '') == "permission granted":
-        airplane.grant_permission_for_inbounding(airport_message)
-        corridor_coordinates = airplane.grant_permission_for_inbounding(airport_message)
+        plane.grant_permission_for_inbounding(airport_message)
+        corridor_coordinates = plane.grant_permission_for_inbounding(airport_message)
         return corridor_coordinates
     return None
 
 
-def fly_to_corridor_and_land(airplane, corridor_coordinates):
-    runway_coordinates = airplane.extract_runway_coordinates(corridor_coordinates)
-    airplane_coordinates = airplane.airplane_flight.fly_to_corridor(
+def fly_to_corridor_and_land(plane, corridor_coordinates):
+    runway_coordinates = plane.extract_runway_coordinates(corridor_coordinates)
+    plane_coordinates = plane.airplane_flight.fly_to_corridor(
         runway_coordinates[0], runway_coordinates[1], runway_coordinates[2])
-    airplane.send_json(airplane_coordinates)
-    return airplane.airplane_flight.landed
+    plane.send_json(plane_coordinates)
+    return plane.airplane_flight.landed
 
 
-def main(airplane):
+def main(plane):
     keep_running = True
     while keep_running:
-        if airplane:
-            '''
-            landing_permission_message = airplane.request_landing_permission()
-            airplane.send_json(landing_permission_message)
-            message = airplane.recv_json()
-            airplane.receive_approach_permission(message)
-            '''
-            handle_landing_permission(airplane)
-            if not airplane.permission_granted:
-                airplane.socket.close()
+        if plane:
+            handle_landing_permission(plane)
+            if not plane.permission_granted:
+                plane.socket.close()
                 keep_running = False
                 continue
-            while airplane.permission_granted and not airplane.airplane_flight.landed:
-                '''
-                message = airplane.airplane_flight.fly_randomly()
-                airplane.send_json(message)
-                server_message = airplane.recv_json()
-                if server_message.get("message") == "collision!":
-                    break
-                    pass  # create collision handling
-                elif server_message is None:
-                    print("Server closed the connection")
-                    airplane.socket.close()
-                    keep_running = False
-                    break
-                message = airplane.request_runway_permission()
-                airplane.send_json(message)
-                server_message = airplane.recv_json()
-                '''
-                collision = fly_randomly_and_handle_collisions(airplane)
+            while plane.permission_granted and not plane.airplane_flight.landed:
+                collision = fly_randomly_and_handle_collisions(plane)
                 if collision:
                     break
-
-                corridor_coordinates = request_runway_permission_and_inbound(airplane)
-                '''
-                if server_message.get("message", '') == "permission granted":
-                    airplane.grant_permission_for_inbounding(server_message)
-                    corridor_coordinates = airplane.grant_permission_for_inbounding(server_message)
-                '''
-                while airplane.inbound:
-                    landed = fly_to_corridor_and_land(airplane, corridor_coordinates)
+                corridor_coordinates = request_runway_permission_and_inbound(plane)
+                while plane.inbound:
+                    landed = fly_to_corridor_and_land(plane, corridor_coordinates)
                     if landed:
-                        airplane.socket.close()
+                        plane.socket.close()
                         keep_running = False
                         break
-                    '''
-                    runway_coordinates = airplane.extract_runway_coordinates(corridor_coordinates)
-                    airplane_coordinates = airplane.airplane_flight.fly_to_corridor(
-                        runway_coordinates[0], runway_coordinates[1], runway_coordinates[2])
-                    airplane.send_json(airplane_coordinates)
-                    if airplane.airplane_flight.landed:
-                        airplane.socket.close()
-                        keep_running = False
-                        break
-                    else:
-                        airplane_coordinates = airplane.airplane_flight.fly_to_corridor(
-                            runway_coordinates[0], runway_coordinates[1], runway_coordinates[2])
-                        airplane.send_json(airplane_coordinates)
-                    '''

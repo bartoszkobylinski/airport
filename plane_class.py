@@ -1,11 +1,9 @@
-import json
 import random
-import string
-import math
 import time
-
-from socket_connection import SocketConnection
 import logging
+from airplane_flight import AirplaneFlight
+from socket_connection import SocketConnection
+from unique_generator import UniqueIDGenerator
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
