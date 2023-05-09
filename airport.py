@@ -26,7 +26,8 @@ while delta_time < 3600:
         t.start()
         threads.append(t)
     except Exception as e:
-        print(f"I tried to start new thread but i got Excpetion: {e}")
+        print(f"An exception occurred while attempting to start a new thread. The details are as follows: "
+              f"Exception Type: {type(e).__name__} \nException Message: {str(e)}")
         server_running = False
         break
 

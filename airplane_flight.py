@@ -33,7 +33,9 @@ class AirplaneFlight:
             'y': self.y,
             'z': self.z,
             'velocity': self.velocity,
-            'fuel': self.fuel
+            'fuel': self.fuel,
+            'permission': self.airplane_instance.permission_granted,
+            'inbounding': self.airplane_instance.inbound
         }
 
     def update_airplane_position(self, corridor_x, corridor_y, corridor_z, distance):
@@ -50,7 +52,7 @@ class AirplaneFlight:
             pass
 
         self.update_position(direction_vector)
-        self.fuel -= 1
+        self.fuel -= 3
         if self.fuel == 0:
             logging.error(f"Airplane {self.uniqueId} has run out of fuel and has collide")
 
@@ -63,6 +65,8 @@ class AirplaneFlight:
         self.z += self.velocity * math.sin(direction)
         self.z = round(self.z, 0)
         airplane_data = self.get_airplane_data()
+        logging.info(f"Airplane {self.uniqueId}: flies with status: {self.airplane_instance.permission_granted} and "
+                     f"inbound: {self.airplane_instance.inbound}")
         return {"data": "execute_approach", **airplane_data}
 
     def fly_to_corridor(self, corridor_x, corridor_y, corridor_z):
@@ -78,5 +82,4 @@ class AirplaneFlight:
             return {"data": "execute_runway_approach", **airplane_data}
 
     def handle_entered_corridor(self):
-        logging.info(f"Airplane {self.uniqueId} has entered the corridor")
         self.landed = True

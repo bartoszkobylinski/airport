@@ -43,6 +43,7 @@ def fly_to_corridor_and_land(plane, corridor_coordinates):
 
 
 def main(plane):
+    plains = []
     keep_running = True
     while keep_running:
         if plane:
