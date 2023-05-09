@@ -15,7 +15,7 @@ class PermissionHandler:
             else:
                 return False
 
-    def handle_inbound_request(self):
+    def handle_inbound_request(self, data):
         response = self.inbound_for_approach_runway()
         return response
 

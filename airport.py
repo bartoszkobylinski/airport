@@ -2,11 +2,13 @@ import random
 import threading
 import time
 from airport_class import Airport
+from airport_instance import Airport as Ap
 
 start_time = time.time()
 current_time = time.time()
 delta_time = current_time - start_time
-airport = Airport()
+#airport = Airport()
+airport = Ap()
 lock = threading.Lock()
 threads = []
 server_running = True
