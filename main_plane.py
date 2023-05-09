@@ -28,7 +28,6 @@ def request_runway_permission_and_inbound(plane):
     plane.send_json(message)
     airport_message = plane.recv_json()
     if airport_message.get("message", '') == "permission granted":
-        plane.grant_permission_for_inbounding(airport_message)
         corridor_coordinates = plane.grant_permission_for_inbounding(airport_message)
         return corridor_coordinates
     return None

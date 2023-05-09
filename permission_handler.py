@@ -27,7 +27,7 @@ class PermissionHandler:
                     corridor_coords = runway.corridor_coords
                     return {'message': "permission granted",
                             "coordinates": {"x": corridor_coords[0], "y": corridor_coords[1], "z": corridor_coords[2]}}
-            return {"message": "permission denied", "data": self.airport.runways}
+            return {"message": "permission denied", "data": [runway.to_dict() for runway in self.airport.runways]}
 
     def handle_inbound(self, data):
         message = self.airport.inbounding(data)
