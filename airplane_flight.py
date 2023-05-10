@@ -41,7 +41,6 @@ class AirplaneFlight:
     def update_airplane_position(self, corridor_x, corridor_y, corridor_z, distance):
         direction_vector = (np.array([corridor_x, corridor_y, corridor_z]) - np.array(
             [self.x, self.y, self.z])) / distance
-
         if 1000 > distance > 300:
             self.velocity = 50 - 40 * (distance - 300) / 700
         elif 300 >= distance > 150:

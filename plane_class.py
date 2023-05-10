@@ -46,7 +46,7 @@ class Airplane(SocketConnection):
         return {"data": "request_runway_permission", **airplane_data}
 
     def grant_permission_for_inbounding(self, data):
-        if data.get("message", '') == "permission granted":
+        if data.get("airport_message", '') == "permission granted":
             self.inbound = True
             return data
         else:

@@ -28,6 +28,8 @@ class CollisionDetector:
 
                 if self.check_collision(self.airport.airplanes[i], self.airport.airplanes[j], limit=limit):
                     print("Airplanes collide")
-                    message = {"message": "collision!", "airplane-1": self.airport.airplanes[i], "airplane-2": self.airport.airplanes[j]}
+                    message = {"airport_message": "collision!",
+                               "airplane-1": self.airport.airplanes[i],
+                               "airplane-2": self.airport.airplanes[j]}
                     return message
-        return {"message": "No collision detected"}
+        return {"airport_message": "No collision detected"}

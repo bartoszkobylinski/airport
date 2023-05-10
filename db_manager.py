@@ -1,7 +1,8 @@
 import sqlite3
 import os
 
-class DB_Manager:
+
+class DbManager:
 
     def __init__(self, db_name):
         self.db_name = db_name
@@ -31,8 +32,8 @@ class DB_Manager:
 
     def add_row(self, **kwargs):
         cursor = self.connection.cursor()
-        cursor.execute(""" INSERT INTO airplanes VALUES (
-        )
-        """)
-
-
+        columns = ', '.join(kwargs.keys())
+        placeholders = ', '.join('?' for _ in kwargs)
+        sql = f'INSERT INTO airplanes ({columns}) VALUES ({placeholders})'
+        cursor.execute(sql, tuple(kwargs.values()))
+        self.connection.commit()

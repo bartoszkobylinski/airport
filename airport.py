@@ -9,7 +9,6 @@ current_time = time.time()
 delta_time = current_time - start_time
 #airport = Airport()
 airport = Ap()
-lock = threading.Lock()
 threads = []
 server_running = True
 

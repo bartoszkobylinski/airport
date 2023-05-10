@@ -1,4 +1,5 @@
 from plane_class import Airplane
+import time
 
 airplane = Airplane()
 
@@ -14,7 +15,7 @@ def fly_randomly_and_handle_collisions(plane):
     message = plane.airplane_flight.fly_randomly()
     plane.send_json(message)
     airport_message = plane.recv_json()
-    if airport_message.get("message", '') == "collision!":
+    if airport_message.get("airport_message", '') == "collision!":
         return True
     elif airport_message is None:
         print("Airport closed the connection")
@@ -27,13 +28,13 @@ def request_runway_permission_and_inbound(plane):
     message = plane.request_runway_permission()
     plane.send_json(message)
     airport_message = plane.recv_json()
-    if airport_message.get("message", '') == "permission granted":
+    if airport_message.get("airport_message", '') == "permission granted":
         corridor_coordinates = plane.grant_permission_for_inbounding(airport_message)
         return corridor_coordinates
     return None
 
 
-def fly_to_corridor_and_land(plane, corridor_coordinates):
+def fly_to_corridor_if_not_landed(plane, corridor_coordinates):
     runway_coordinates = plane.extract_runway_coordinates(corridor_coordinates)
     plane_coordinates = plane.airplane_flight.fly_to_corridor(
         runway_coordinates[0], runway_coordinates[1], runway_coordinates[2])
@@ -42,7 +43,7 @@ def fly_to_corridor_and_land(plane, corridor_coordinates):
 
 
 def main(plane):
-    plains = []
+    print(plane)
     keep_running = True
     while keep_running:
         if plane:
@@ -57,7 +58,7 @@ def main(plane):
                     break
                 corridor_coordinates = request_runway_permission_and_inbound(plane)
                 while plane.inbound:
-                    landed = fly_to_corridor_and_land(plane, corridor_coordinates)
+                    landed = fly_to_corridor_if_not_landed(plane, corridor_coordinates)
                     if landed:
                         plane.socket.close()
                         keep_running = False

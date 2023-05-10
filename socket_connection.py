@@ -7,7 +7,7 @@ import time
 
 class SocketConnection(socket.socket):
 
-    def __init__(self, port=16452, host='127.0.0.1', encoder='utf-8', buffer=2048, socket_instance=None):
+    def __init__(self, port=10452, host='127.0.0.1', encoder='utf-8', buffer=2048, socket_instance=None):
         super().__init__()
         self.host = host
         self.port = port
