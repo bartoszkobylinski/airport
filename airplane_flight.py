@@ -41,23 +41,19 @@ class AirplaneFlight:
             'inbounding': self.airplane_instance.inbound
         }
 
-    def update_airplane_position(self, corridor_x, corridor_y, corridor_z, distance):
-        direction_vector = (np.array([corridor_x, corridor_y, corridor_z]) - np.array(
-            [self.x, self.y, self.z])) / distance
-        if 1000 > distance > 300:
-            self.velocity = 50 - 40 * (distance - 300) / 700
-        elif 300 >= distance > 150:
-            self.velocity = 15 - 10 * (distance - 150) / 150
-        elif distance <= 150:
-            self.velocity = 7 - 4 * distance / 150
-        else:
-            pass
-
+    def update_airplane_position(self, direction_vector, distance=None):
+        if distance is not None:
+            if 1000 > distance > 300:
+                self.velocity = 50 - 40 * (distance - 300) / 700
+            elif 300 >= distance > 150:
+                self.velocity = 15 - 10 * (distance - 150) / 150
+            elif distance <= 150:
+                self.velocity = 7 - 4 * distance / 150
         self.update_position(direction_vector)
         self.fuel -= 300
-        if self.fuel == 0:
-            logging.error(f"Airplane {self.uniqueId} has run out of fuel and has collide")
-            print(f"airplane collide {self.airplane_instance.uniqueId}")
+        if self.fuel <= 0:
+            logging.error(f"Airplane {self.uniqueId} has run out of fuel and has collided")
+            print(f"Airplane collided {self.airplane_instance.uniqueId}")
 
     def fly_randomly(self):
         direction = random.randint(0, 360)
@@ -86,3 +82,31 @@ class AirplaneFlight:
 
     def handle_entered_corridor(self):
         self.landed = True
+
+    def calculate_direction_vector(self, target_x, target_y, target_z):
+        if target_x is None or target_y is None or target_z is None:
+            # Generate a random direction
+            direction = random.randint(0, 360)
+            direction_vector = np.array([math.cos(direction), math.sin(direction), math.sin(direction)])
+        else:
+            # Calculate the direction vector towards the target
+            direction_vector = (np.array([target_x, target_y, target_z]) - np.array([self.x, self.y, self.z]))
+            direction_vector /= np.linalg.norm(direction_vector)
+        return direction_vector
+
+    def fly(self, target_x=None, target_y=None, target_z=None):
+        direction_vector = self.calculate_direction_vector(target_x, target_y, target_z)
+        if target_x is not None and target_y is not None and target_z is not None:
+            distance = self.calculate_distance(target_x, target_y, target_z)
+            logging.info(f"Airplane {self.uniqueId} is {round(distance, 0)} meters away from the target")
+            if distance <= 100:
+                self.handle_entered_corridor()
+                landed_information = self.airplane_instance.send_landed_information()
+                return {"airplane_ID": self.uniqueId, "x_coordinates": target_x, **landed_information,
+                        **self.get_airplane_data()}
+            else:
+                self.update_airplane_position(direction_vector, distance)
+                return {"data": "execute_runway_approach", **self.get_airplane_data()}
+        else:
+            self.update_position(direction_vector)
+            return {"data": "execute_approach", **self.get_airplane_data()}

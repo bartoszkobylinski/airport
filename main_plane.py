@@ -1,3 +1,4 @@
+'''
 from plane_class import Airplane
 import time
 
@@ -62,4 +63,66 @@ def main(plane):
                     if landed:
                         plane.socket.close()
                         keep_running = False
+                        break
+
+'''
+from plane_class import Airplane
+import time
+
+airplane = Airplane()
+
+
+def handle_landing_permission(plane):
+    landing_permission_message = plane.request_landing_permission()
+    plane.send_json(landing_permission_message)
+    message = plane.recv_json()
+    plane.receive_approach_permission(message)
+
+
+def fly_and_handle_collisions(plane, target_coordinates=None):
+    message = plane.airplane_flight.fly(target_coordinates)
+    plane.send_json(message)
+    airport_message = plane.recv_json()
+    if airport_message.get("airport_message", '') == "collision!":
+        return True
+    elif airport_message is None:
+        print("Airport closed the connection")
+        plane.socket.close()
+        return True
+    return False
+
+
+def request_runway_permission_and_inbound(plane):
+    message = plane.request_runway_permission()
+    plane.send_json(message)
+    airport_message = plane.recv_json()
+    if airport_message.get("airport_message", '') == "permission granted":
+        corridor_coordinates = plane.grant_permission_for_inbounding(airport_message)
+        return corridor_coordinates
+    return None
+
+
+def main(plane):
+    keep_running = True
+    while keep_running:
+        if plane:
+            handle_landing_permission(plane)
+            print(plane)
+            if not plane.permission_granted:
+                plane.socket.close()
+                keep_running = False
+                continue
+            while plane.permission_granted and not plane.airplane_flight.landed:
+                corridor_coordinates = request_runway_permission_and_inbound(plane)
+                if corridor_coordinates:
+                    plane.inbound = True
+                    while plane.inbound:
+                        collision = fly_and_handle_collisions(plane, corridor_coordinates)
+                        if collision or plane.airplane_flight.landed:
+                            plane.socket.close()
+                            keep_running = False
+                            break
+                else:
+                    collision = fly_and_handle_collisions(plane)
+                    if collision:
                         break
