@@ -43,11 +43,11 @@ def fly_to_corridor_if_not_landed(plane, corridor_coordinates):
 
 
 def main(plane):
-    print(plane)
     keep_running = True
     while keep_running:
         if plane:
             handle_landing_permission(plane)
+            print(plane)
             if not plane.permission_granted:
                 plane.socket.close()
                 keep_running = False

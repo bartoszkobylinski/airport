@@ -1,4 +1,6 @@
 import math
+
+
 class CollisionDetector:
     def __init__(self, airport):
         self.airport = airport

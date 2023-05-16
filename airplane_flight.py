@@ -51,9 +51,10 @@ class AirplaneFlight:
             pass
 
         self.update_position(direction_vector)
-        self.fuel -= 3
+        self.fuel -= 300
         if self.fuel == 0:
             logging.error(f"Airplane {self.uniqueId} has run out of fuel and has collide")
+            print(f"airplane collide {self.airplane_instance.uniqueId}")
 
     def fly_randomly(self):
         direction = random.randint(0, 360)
@@ -64,8 +65,8 @@ class AirplaneFlight:
         self.z += self.velocity * math.sin(direction)
         self.z = round(self.z, 0)
         airplane_data = self.get_airplane_data()
-        logging.info(f"Airplane {self.uniqueId}: flies with status: {self.airplane_instance.permission_granted} and "
-                     f"inbound: {self.airplane_instance.inbound}")
+        # logging.info(f"Airplane {self.uniqueId}: flies with status: {self.airplane_instance.permission_granted} and "
+        # f"inbound: {self.airplane_instance.inbound}")
         return {"data": "execute_approach", **airplane_data}
 
     def fly_to_corridor(self, corridor_x, corridor_y, corridor_z):

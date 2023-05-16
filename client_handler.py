@@ -7,61 +7,32 @@ class ClientHandler:
         self.airport = airport
 
     def handle_new_client(self, client_socket):
+        status_mapping = {
+            "Permission to approach airport granted": "approaching",
+            "Permission to approach airport rejected": "rejected for approach",
+            "permission granted": "inbounding to runway",
+            "permission denied": "approaching",
+            "airplane landed": "landed"
+        }
         while True:
             data = self.airport.recv_json(client_socket)
             if data:
                 action = data.get("data", "")
-                #print(f"this is your data: {data}")
                 time.sleep(1)
                 response = self.process_action(action, data)
-                #print(f"this is response: {response}")
-                time.sleep(1)
-                if response.get("airport_message", "") == "Permission to approach airport granted":
+                airport_message = response.get("airport_message", "")
+                if airport_message in status_mapping:
                     airplane_data = {
                         'airplane_id': data.get("airplane_ID", ""),
                         'x': data.get("x", ""),
                         'y': data.get("y", ''),
                         'z': data.get("z", ''),
                         'fuel': data.get("fuel", ''),
-                        'status': "approaching"
+                        'status': status_mapping[airport_message]
                     }
-                elif response.get("airport_message", '') == "Permission to approach airport rejected":
-                    airplane_data = {
-                        'airplane_id': data.get("airplane_ID", ""),
-                        'x': data.get("x", ""),
-                        'y': data.get("y", ''),
-                        'z': data.get("z", ''),
-                        'fuel': data.get("fuel", ''),
-                        'status': "rejected for approach"
-                    }
-                elif response.get("airport_message", "") == "permission granted":
-                    airplane_data = {
-                        'airplane_id': data.get("airplane_ID", ""),
-                        'x': data.get("x", ""),
-                        'y': data.get("y", ''),
-                        'z': data.get("z", ''),
-                        'fuel': data.get("fuel", ''),
-                        'status': "inbounding to runway"
-                    }
-                elif response.get("airport_message", "") == "permission denied":
-                    airplane_data = {
-                        'airplane_id': data.get("airplane_ID", ""),
-                        'x': data.get("x", ""),
-                        'y': data.get("y", ''),
-                        'z': data.get("z", ''),
-                        'fuel': data.get("fuel", ''),
-                        'status': "approaching"
-                    }
-                elif response.get("airport_message", "") == "airplane landed":
-                    airplane_data = {
-                        'airplane_id': data.get("airplane_ID", ""),
-                        'x': data.get("x", ""),
-                        'y': data.get("y", ''),
-                        'z': data.get("z", ''),
-                        'fuel': data.get("fuel", ''),
-                        'status': "landed"
-                    }
-                print(airplane_data)
+                print(f"airport airplanes: {self.airport.airplanes}")
+                for runway in self.airport.runways:
+                    print(f"runway: {runway}")
                 self.airport.send_json(response, custom_socket=client_socket)
             else:
                 client_socket.close()

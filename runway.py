@@ -14,3 +14,9 @@ class Runway:
             },
             "is_occupied": self.is_occupied
         }
+
+    def __str__(self):
+        if self.is_occupied:
+            return f"Runway: {self.number} is occupied"
+        else:
+            return f"Runway: {self.number} is available"
