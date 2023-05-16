@@ -25,6 +25,9 @@ class AirplaneFlight:
         self.y = round(self.y, 0)
         self.z += self.velocity * direction_vector[2]
         self.z = round(self.z, 0)
+        logging.info(f"Airplane {self.uniqueId} is now at position: ({self.x}, {self.y}, {self.z} "
+                     f"with fuel level: {self.fuel} and velocity: {self.velocity})")
+
 
     def get_airplane_data(self):
         return {
