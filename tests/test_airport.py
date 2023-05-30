@@ -4,7 +4,7 @@ import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from airport_class import Airport
+from reserved.airport_class import Airport
 
 
 class TestAirport(unittest.TestCase):

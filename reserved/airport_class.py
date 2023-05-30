@@ -8,7 +8,7 @@ from socket_connection import SocketConnection
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-file_handler = logging.FileHandler("airport.log")
+file_handler = logging.FileHandler("../airport.log")
 file_handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(formatter)

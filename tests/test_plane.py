@@ -5,8 +5,7 @@ import re
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from plane_class import UniqueIDGenerator, AirplaneFlight,Airplane
-
+from airplane.plane_class import UniqueIDGenerator, AirplaneFlight
 
 
 class TestUniqueIDGenerator(unittest.TestCase):

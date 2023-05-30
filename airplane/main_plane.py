@@ -1,4 +1,4 @@
-'''
+"""
 from plane_class import Airplane
 import time
 
@@ -65,7 +65,7 @@ def main(plane):
                         keep_running = False
                         break
 
-'''
+"""
 from plane_class import Airplane
 import time
 
@@ -96,6 +96,7 @@ def request_runway_permission_and_inbound(plane):
     message = plane.request_runway_permission()
     plane.send_json(message)
     airport_message = plane.recv_json()
+    print(f" plane got message from airport: {airport_message}")
     if airport_message.get("airport_message", '') == "permission granted":
         corridor_coordinates = plane.grant_permission_for_inbounding(airport_message)
         return corridor_coordinates
@@ -107,17 +108,21 @@ def main(plane):
     while keep_running:
         if plane:
             handle_landing_permission(plane)
-            print(plane)
+            print(f"this is plane {plane}")
             if not plane.permission_granted:
                 plane.socket.close()
                 keep_running = False
                 continue
+            print(f"plane permission granted: {plane.permission_granted}")
             while plane.permission_granted and not plane.airplane_flight.landed:
                 corridor_coordinates = request_runway_permission_and_inbound(plane)
+                print(f"plane is: {plane.airplane_flight.landed}")
+                print(f"plane got corridor_coordinates {corridor_coordinates}")
                 if corridor_coordinates:
                     plane.inbound = True
                     while plane.inbound:
                         collision = fly_and_handle_collisions(plane, corridor_coordinates)
+                        print(f"this is collison {collision}")
                         if collision or plane.airplane_flight.landed:
                             plane.socket.close()
                             keep_running = False

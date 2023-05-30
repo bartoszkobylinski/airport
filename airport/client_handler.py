@@ -1,3 +1,4 @@
+import threading
 import time
 
 
@@ -14,6 +15,10 @@ class ClientHandler:
             "permission denied": "approaching",
             "airplane landed": "landed"
         }
+        with self.airport.lock:
+            self.airport.counter += 1
+
+        print(f"COUNTER IS: {self.airport.counter}")
         while True:
             data = self.airport.recv_json(client_socket)
             if data:

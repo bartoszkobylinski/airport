@@ -1,8 +1,6 @@
-import random
 import threading
 import time
-from airport_class import Airport
-from airport_instance import Airport as Ap
+from airport.airport_instance import Airport as Ap
 
 start_time = time.time()
 current_time = time.time()

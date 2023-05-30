@@ -4,7 +4,7 @@ import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from plane_class import Airplane, UniqueIDGenerator
+from airplane.plane_class import Airplane, UniqueIDGenerator
 
 
 class TestAirplane(Airplane):

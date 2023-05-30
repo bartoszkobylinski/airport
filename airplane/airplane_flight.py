@@ -25,8 +25,8 @@ class AirplaneFlight:
         self.y = round(self.y, 0)
         self.z += self.velocity * direction_vector[2]
         self.z = round(self.z, 0)
-        logging.info(f"Airplane {self.uniqueId} is now at position: ({self.x}, {self.y}, {self.z} "
-                     f"with fuel level: {self.fuel} and velocity: {self.velocity})")
+        # logging.info(f"Airplane {self.uniqueId} is now at position: ({self.x}, {self.y}, {self.z} "
+        #             f"with fuel level: {self.fuel} and velocity: {self.velocity})")
 
 
     def get_airplane_data(self):
@@ -54,7 +54,7 @@ class AirplaneFlight:
         if self.fuel <= 0:
             logging.error(f"Airplane {self.uniqueId} has run out of fuel and has collided")
             print(f"Airplane collided {self.airplane_instance.uniqueId}")
-
+    '''
     def fly_randomly(self):
         direction = random.randint(0, 360)
         self.x += self.velocity * math.cos(direction)
@@ -67,7 +67,7 @@ class AirplaneFlight:
         # logging.info(f"Airplane {self.uniqueId}: flies with status: {self.airplane_instance.permission_granted} and "
         # f"inbound: {self.airplane_instance.inbound}")
         return {"data": "execute_approach", **airplane_data}
-
+        
     def fly_to_corridor(self, corridor_x, corridor_y, corridor_z):
         distance = self.calculate_distance(corridor_x, corridor_y, corridor_z)
         airplane_data = self.get_airplane_data()
@@ -79,7 +79,7 @@ class AirplaneFlight:
         else:
             self.update_airplane_position(corridor_x, corridor_y, corridor_z, distance)
             return {"data": "execute_runway_approach", **airplane_data}
-
+    '''
     def handle_entered_corridor(self):
         self.landed = True
 
@@ -105,7 +105,9 @@ class AirplaneFlight:
                 return {"airplane_ID": self.uniqueId, "x_coordinates": target_x, **landed_information,
                         **self.get_airplane_data()}
             else:
+                print(f"this is fuel level: {self.fuel}")
                 self.update_airplane_position(direction_vector, distance)
+                print(f"this fuel level should varies: {self.fuel} ")
                 return {"data": "execute_runway_approach", **self.get_airplane_data()}
         else:
             self.update_position(direction_vector)
