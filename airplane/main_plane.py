@@ -66,7 +66,7 @@ def main(plane):
                         break
 
 """
-from plane_class import Airplane
+from .plane_class import Airplane
 import time
 
 airplane = Airplane()
@@ -81,6 +81,10 @@ def handle_landing_permission(plane):
 
 def fly_and_handle_collisions(plane, target_coordinates=None):
     message = plane.airplane_flight.fly(target_coordinates)
+    print(f"message fly_handle: {message}")
+    if message is None:
+        print(f"!!!!!!!!!!!!")
+        time.sleep(60)
     plane.send_json(message)
     airport_message = plane.recv_json()
     if airport_message.get("airport_message", '') == "collision!":
@@ -108,16 +112,15 @@ def main(plane):
     while keep_running:
         if plane:
             handle_landing_permission(plane)
-            print(f"this is plane {plane}")
+
             if not plane.permission_granted:
                 plane.socket.close()
                 keep_running = False
                 continue
-            print(f"plane permission granted: {plane.permission_granted}")
             while plane.permission_granted and not plane.airplane_flight.landed:
+                fly_and_handle_collisions(plane)
                 corridor_coordinates = request_runway_permission_and_inbound(plane)
-                print(f"plane is: {plane.airplane_flight.landed}")
-                print(f"plane got corridor_coordinates {corridor_coordinates}")
+
                 if corridor_coordinates:
                     plane.inbound = True
                     while plane.inbound:
@@ -131,3 +134,4 @@ def main(plane):
                     collision = fly_and_handle_collisions(plane)
                     if collision:
                         break
+

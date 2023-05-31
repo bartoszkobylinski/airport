@@ -1,8 +1,8 @@
 import random
 import logging
-from airplane.airplane_flight import AirplaneFlight
+from .airplane_flight import AirplaneFlight
 from socket_connection import SocketConnection
-from airplane.unique_generator import UniqueIDGenerator
+from .unique_generator import UniqueIDGenerator
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 

@@ -17,10 +17,10 @@ class ClientHandler:
         }
         with self.airport.lock:
             self.airport.counter += 1
-
-        print(f"COUNTER IS: {self.airport.counter}")
         while True:
             data = self.airport.recv_json(client_socket)
+            print(f"this is data i got from client: {data}")
+            time.sleep(2)
             if data:
                 action = data.get("data", "")
                 time.sleep(1)
@@ -35,9 +35,6 @@ class ClientHandler:
                         'fuel': data.get("fuel", ''),
                         'status': status_mapping[airport_message]
                     }
-                print(f"airport airplanes: {self.airport.airplanes}")
-                for runway in self.airport.runways:
-                    print(f"runway: {runway}")
                 self.airport.send_json(response, custom_socket=client_socket)
             else:
                 client_socket.close()

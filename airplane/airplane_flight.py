@@ -12,22 +12,12 @@ class AirplaneFlight:
         self.z = z
         self.velocity = velocity
         self.fuel = fuel
+        self.fuel_usage = random.randint(30, 70)
         self.landed = False
         self.airplane_instance = airplane_instance
 
     def calculate_distance(self, x, y, z):
         return np.linalg.norm(np.array([self.x, self.y, self.z]) - np.array([x, y, z]))
-
-    def update_position(self, direction_vector):
-        self.x += self.velocity * direction_vector[0]
-        self.x = round(self.x, 0)
-        self.y += self.velocity * direction_vector[1]
-        self.y = round(self.y, 0)
-        self.z += self.velocity * direction_vector[2]
-        self.z = round(self.z, 0)
-        # logging.info(f"Airplane {self.uniqueId} is now at position: ({self.x}, {self.y}, {self.z} "
-        #             f"with fuel level: {self.fuel} and velocity: {self.velocity})")
-
 
     def get_airplane_data(self):
         return {
@@ -49,11 +39,23 @@ class AirplaneFlight:
                 self.velocity = 15 - 10 * (distance - 150) / 150
             elif distance <= 150:
                 self.velocity = 7 - 4 * distance / 150
-        self.update_position(direction_vector)
-        self.fuel -= 300
+
+        self.x += self.velocity * direction_vector[0]
+        self.x = round(self.x, 0)
+        self.y += self.velocity * direction_vector[1]
+        self.y = round(self.y, 0)
+        self.z += self.velocity * direction_vector[2]
+        self.z = round(self.z, 0)
+        self.fuel -= self.fuel_usage
+        print(f"fuel: {self.fuel}")
         if self.fuel <= 0:
             logging.error(f"Airplane {self.uniqueId} has run out of fuel and has collided")
-            print(f"Airplane collided {self.airplane_instance.uniqueId}")
+            print(f"Airplane collided {self.uniqueId}")
+            self.airplane_instance.socket.close()
+        else:
+            print(
+                f"Airplane {self.uniqueId} is now at position: ({self.x}, {self.y}, {self.z} with fuel level: {self.fuel} and velocity: {self.velocity})")
+
     '''
     def fly_randomly(self):
         direction = random.randint(0, 360)
@@ -80,6 +82,7 @@ class AirplaneFlight:
             self.update_airplane_position(corridor_x, corridor_y, corridor_z, distance)
             return {"data": "execute_runway_approach", **airplane_data}
     '''
+
     def handle_entered_corridor(self):
         self.landed = True
 
@@ -98,7 +101,8 @@ class AirplaneFlight:
         direction_vector = self.calculate_direction_vector(target_x, target_y, target_z)
         if target_x is not None and target_y is not None and target_z is not None:
             distance = self.calculate_distance(target_x, target_y, target_z)
-            logging.info(f"Airplane {self.uniqueId} is {round(distance, 0)} meters away from the target")
+            print(f"I got cooordinates and distance is: {distance}")
+            print(f"Airplane {self.uniqueId} is {round(distance, 0)} meters away from the target")
             if distance <= 100:
                 self.handle_entered_corridor()
                 landed_information = self.airplane_instance.send_landed_information()
@@ -110,5 +114,6 @@ class AirplaneFlight:
                 print(f"this fuel level should varies: {self.fuel} ")
                 return {"data": "execute_runway_approach", **self.get_airplane_data()}
         else:
-            self.update_position(direction_vector)
+            self.update_airplane_position(direction_vector)
+            print(f"flying randomly")
             return {"data": "execute_approach", **self.get_airplane_data()}
