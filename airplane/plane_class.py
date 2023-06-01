@@ -61,12 +61,15 @@ class Airplane(SocketConnection):
             self.set_status(Status.APPROACHING)
 
     def request_runway_permission(self):
+        if self.status != Status.APPROACHING:
+            raise ValueError("Airplane is not in appropriate status to receive runway permission.")
         airplane_data = self.airplane_flight.get_airplane_data()
-        return {"data": "request_runway_permission", **airplane_data}
+        return {"data": "request_runway_permission", "status": self.status.name, **airplane_data}
 
     def grant_permission_for_inbounding(self, data):
         if data.get("airport_message", '') == "permission granted":
             self.inbound = True
+            self.set_status(Status.DESCENDING)
             return data
         else:
             return False
