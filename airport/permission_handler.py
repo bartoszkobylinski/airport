@@ -1,12 +1,15 @@
+import time
+
+
 class PermissionHandler:
     def __init__(self, airport):
         self.airport = airport
 
     def process_landing_permission_request(self, data):
-        response = self.grant_approach_permission(data)
+        response = self.inbound_for_approach_runway()
         return response
 
-    def grant_approach_permission(self, data):
+    def grant_approach_airport_permission(self, data):
         with self.airport.lock:
             if len(self.airport.airplanes) < 100:
                 airplane = data.get("airplane_ID")
@@ -21,6 +24,7 @@ class PermissionHandler:
 
     def inbound_for_approach_runway(self):
         with self.airport.lock:
+            print("im here")
             for runway in self.airport.runways:
                 if not runway.is_occupied:
                     runway.is_occupied = True

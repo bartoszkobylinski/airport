@@ -3,6 +3,8 @@ import random
 import math
 import logging
 
+from airplane.status import Status
+
 
 class AirplaneFlight:
     def __init__(self, uniqueId, x, y, z, velocity, fuel, airplane_instance):
@@ -27,8 +29,7 @@ class AirplaneFlight:
             'z': self.z,
             'velocity': self.velocity,
             'fuel': self.fuel,
-            'permission': self.airplane_instance.permission_granted,
-            'inbounding': self.airplane_instance.inbound
+            'status': self.airplane_instance.status.name
         }
 
     def update_airplane_position(self, direction_vector, distance=None):
@@ -47,41 +48,14 @@ class AirplaneFlight:
         self.z += self.velocity * direction_vector[2]
         self.z = round(self.z, 0)
         self.fuel -= self.fuel_usage
-        print(f"fuel: {self.fuel}")
         if self.fuel <= 0:
             logging.error(f"Airplane {self.uniqueId} has run out of fuel and has collided")
             print(f"Airplane collided {self.uniqueId}")
-            self.airplane_instance.socket.close()
+            self.airplane_instance.status = Status.CRASHED
+            print(self.airplane_instance.status.name)
         else:
             print(
                 f"Airplane {self.uniqueId} is now at position: ({self.x}, {self.y}, {self.z} with fuel level: {self.fuel} and velocity: {self.velocity})")
-
-    '''
-    def fly_randomly(self):
-        direction = random.randint(0, 360)
-        self.x += self.velocity * math.cos(direction)
-        self.x = round(self.x, 0)
-        self.y += self.velocity * math.sin(direction)
-        self.y = round(self.y, 0)
-        self.z += self.velocity * math.sin(direction)
-        self.z = round(self.z, 0)
-        airplane_data = self.get_airplane_data()
-        # logging.info(f"Airplane {self.uniqueId}: flies with status: {self.airplane_instance.permission_granted} and "
-        # f"inbound: {self.airplane_instance.inbound}")
-        return {"data": "execute_approach", **airplane_data}
-        
-    def fly_to_corridor(self, corridor_x, corridor_y, corridor_z):
-        distance = self.calculate_distance(corridor_x, corridor_y, corridor_z)
-        airplane_data = self.get_airplane_data()
-        logging.info(f"Airplane {self.uniqueId} is {round(distance, 0)} meters away from the corridor")
-        if distance <= 100:
-            self.handle_entered_corridor()
-            landed_information = self.airplane_instance.send_landed_information()
-            return {"airplane_ID": self.uniqueId, "x_coordinates": corridor_x, **landed_information, **airplane_data}
-        else:
-            self.update_airplane_position(corridor_x, corridor_y, corridor_z, distance)
-            return {"data": "execute_runway_approach", **airplane_data}
-    '''
 
     def handle_entered_corridor(self):
         self.landed = True

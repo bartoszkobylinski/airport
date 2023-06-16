@@ -42,7 +42,8 @@ class ClientHandler:
 
     def process_action(self, action, data):
         action_to_function = {
-            "request_landing_permission": (self.airport.permission_handler.process_landing_permission_request, True),
+            "request_approaching_airport_permission":
+                (self.airport.permission_handler.grant_approach_airport_permission, True),
             "execute_approach": (self.airport.handle_fly, True),
             "request_runway_permission": (self.airport.permission_handler.handle_inbound_request, True),
             "execute_runway_approach": (self.airport.permission_handler.handle_inbound, True),

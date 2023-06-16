@@ -2,18 +2,11 @@ import random
 import logging
 from .airplane_flight import AirplaneFlight
 from socket_connection import SocketConnection
+from .status import Status
 from .unique_generator import UniqueIDGenerator
 from enum import Enum
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-
-class Status(Enum):
-    WAITING = 1
-    APPROACHING = 2
-    DESCENDING = 3
-    LANDED = 4
-    CRASHED = 5
 
 
 class Airplane(SocketConnection):
@@ -25,13 +18,11 @@ class Airplane(SocketConnection):
         self.airplane_flight = None
         self.socket.connect((self.host, self.port))
         self.init_airplane_state()
-        self.permission_granted = None
-        self.inbound = None
         self.status = Status.WAITING
 
     def __str__(self):
-        a = self.airplane_flight.get_airplane_data()
-        return f"{a}"
+        airplane = self.airplane_flight.get_airplane_data()
+        return f"{airplane}"
 
     def init_airplane_state(self):
         x = random.randint(-5000, 5000)
@@ -50,7 +41,7 @@ class Airplane(SocketConnection):
 
     def request_landing_permission(self):
         airplane_data = self.airplane_flight.get_airplane_data()
-        return {"data": "request_landing_permission", "status": self.status.name, **airplane_data}
+        return {"data": "request_approaching_airport_permission", "status": self.status.name, **airplane_data}
 
     def receive_approach_permission(self, data):
         if self.status != Status.WAITING:
