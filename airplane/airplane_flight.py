@@ -14,8 +14,9 @@ class AirplaneFlight:
         self.z = z
         self.velocity = velocity
         self.fuel = fuel
-        self.fuel_usage = random.randint(30, 70)
+        self.fuel_usage = random.randint(3, 7)
         self.landed = False
+        self.runway_coordinates = None
         self.airplane_instance = airplane_instance
 
     def calculate_distance(self, x, y, z):
@@ -50,15 +51,13 @@ class AirplaneFlight:
         self.fuel -= self.fuel_usage
         if self.fuel <= 0:
             logging.error(f"Airplane {self.uniqueId} has run out of fuel and has collided")
-            print(f"Airplane collided {self.uniqueId}")
+            print(f"Airplane: {self.uniqueId} collided")
             self.airplane_instance.status = Status.CRASHED
             print(self.airplane_instance.status.name)
-        else:
-            print(
-                f"Airplane {self.uniqueId} is now at position: ({self.x}, {self.y}, {self.z} with fuel level: {self.fuel} and velocity: {self.velocity})")
 
     def handle_entered_corridor(self):
         self.landed = True
+        self.airplane_instance.status = Status.LANDED
 
     def calculate_direction_vector(self, target_x, target_y, target_z):
         if target_x is None or target_y is None or target_z is None:
@@ -75,19 +74,16 @@ class AirplaneFlight:
         direction_vector = self.calculate_direction_vector(target_x, target_y, target_z)
         if target_x is not None and target_y is not None and target_z is not None:
             distance = self.calculate_distance(target_x, target_y, target_z)
-            print(f"I got cooordinates and distance is: {distance}")
-            print(f"Airplane {self.uniqueId} is {round(distance, 0)} meters away from the target")
+            print(f"Airplane {self.uniqueId} is {round(distance, 0)} meters away from the target. Fuel level: {self.fuel}")
             if distance <= 100:
                 self.handle_entered_corridor()
                 landed_information = self.airplane_instance.send_landed_information()
                 return {"airplane_ID": self.uniqueId, "x_coordinates": target_x, **landed_information,
                         **self.get_airplane_data()}
             else:
-                print(f"this is fuel level: {self.fuel}")
                 self.update_airplane_position(direction_vector, distance)
-                print(f"this fuel level should varies: {self.fuel} ")
                 return {"data": "execute_runway_approach", **self.get_airplane_data()}
         else:
+            print(f"Airplane: {self.uniqueId}: flying randomly")
             self.update_airplane_position(direction_vector)
-            print(f"flying randomly")
             return {"data": "execute_approach", **self.get_airplane_data()}

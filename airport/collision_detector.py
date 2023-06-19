@@ -21,17 +21,17 @@ class CollisionDetector:
             specific_airplane_check = False
         else:
             specific_airplane_check = True
+        with self.airport.lock:
+            for i in range(len(self.airport.airplanes)):
+                for j in range(i + 1, len(self.airport.airplanes)):
+                    if specific_airplane_check:
+                        if self.airport.airplanes[i] != specific_airplane and self.airport.airplanes[j] != specific_airplane:
+                            continue
 
-        for i in range(len(self.airport.airplanes)):
-            for j in range(i + 1, len(self.airport.airplanes)):
-                if specific_airplane_check:
-                    if self.airport.airplanes[i] != specific_airplane and self.airport.airplanes[j] != specific_airplane:
-                        continue
-
-                if self.check_collision(self.airport.airplanes[i], self.airport.airplanes[j], limit=limit):
-                    print("Airplanes collide")
-                    message = {"airport_message": "collision!",
-                               "airplane-1": self.airport.airplanes[i],
-                               "airplane-2": self.airport.airplanes[j]}
-                    return message
+                    if self.check_collision(self.airport.airplanes[i], self.airport.airplanes[j], limit=limit):
+                        print("Airplanes collide")
+                        message = {"airport_message": "collision!",
+                                   "airplane-1": self.airport.airplanes[i],
+                                   "airplane-2": self.airport.airplanes[j]}
+                        return message
         return {"airport_message": "No collision detected"}

@@ -24,14 +24,13 @@ class PermissionHandler:
 
     def inbound_for_approach_runway(self):
         with self.airport.lock:
-            print("im here")
             for runway in self.airport.runways:
                 if not runway.is_occupied:
                     runway.is_occupied = True
                     corridor_coords = runway.corridor_coords
                     return {'airport_message': "permission granted",
                             "coordinates": {"x": corridor_coords[0], "y": corridor_coords[1], "z": corridor_coords[2]}}
-            return {"airport_message": "permission denied", "data": [runway.to_dict() for runway in self.airport.runways]}
+            return {"airport_message": "permission denied"}
 
     def handle_inbound(self, data):
         message = self.airport.inbounding(data)

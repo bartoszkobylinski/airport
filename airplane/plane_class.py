@@ -14,7 +14,6 @@ class Airplane(SocketConnection):
 
     def __init__(self, socket=None):
         super().__init__(socket_instance=socket)
-
         self.airplane_flight = None
         self.socket.connect((self.host, self.port))
         self.init_airplane_state()
@@ -48,7 +47,6 @@ class Airplane(SocketConnection):
             raise ValueError("Airplane is not in appropriate status to receive approach permission.")
 
         if data.get("airport_message", '') == "Permission to approach airport granted":
-            self.permission_granted = True
             self.set_status(Status.APPROACHING)
 
     def request_runway_permission(self):
@@ -57,15 +55,15 @@ class Airplane(SocketConnection):
         airplane_data = self.airplane_flight.get_airplane_data()
         return {"data": "request_runway_permission", "status": self.status.name, **airplane_data}
 
-    def grant_permission_for_inbounding(self, data):
+    def receive_permission_to_descending(self, data):
         if data.get("airport_message", '') == "permission granted":
-            self.inbound = True
             self.set_status(Status.DESCENDING)
-            return data
+            runway_coordinates = self._extract_runway_coordinates(data)
+            self.airplane_flight.runway_coordinates = runway_coordinates
         else:
             return False
 
-    def extract_runway_coordinates(self, data):
+    def _extract_runway_coordinates(self, data):
         runway_x = data.get("coordinates", {}).get("x")
         runway_y = data.get("coordinates", {}).get("y")
         runway_z = data.get("coordinates", {}).get("z")

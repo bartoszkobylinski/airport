@@ -13,11 +13,17 @@ def main(plane):
         if plane.status is Status.APPROACHING:
             landing_permission_message = plane.request_runway_permission()
             plane.send_json(landing_permission_message)
-            plane.recv_json()
+            airport_message = plane.recv_json()
             time.sleep(1)
-    else:
-        print("Airplane has either landed, crashed, or failed to receive permission to approach. Please refer to the "
-              "log files for additional details.")
-        print(plane.status)
-        plane.socket.close()
+            plane.receive_permission_to_descending(airport_message)
+        while plane.status is Status.DESCENDING:
+            message = plane.airplane_flight.fly(plane.airplane_flight.runway_coordinates[0],
+                                                plane.airplane_flight.runway_coordinates[1],
+                                                plane.airplane_flight.runway_coordinates[2])
+            plane.send_json(message)
+            airport_message = plane.recv_json()
 
+    else:
+        print(f"Airplane: {plane.airplane_flight.uniqueId} status: {plane.status} has either landed, crashed, or "
+              f"failed to receive permission to approach. Please refer to the log files for additional details.")
+        plane.socket.close()
