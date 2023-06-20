@@ -3,7 +3,7 @@ import random
 import math
 import logging
 
-from airplane.status import Status
+from airplane.airplane_enums import Status
 
 
 class AirplaneFlight:
@@ -87,3 +87,10 @@ class AirplaneFlight:
             print(f"Airplane: {self.uniqueId}: flying randomly")
             self.update_airplane_position(direction_vector)
             return {"data": "execute_approach", **self.get_airplane_data()}
+
+    def handle_collision(self, data):
+        if data.get("airport_message", '') == "collision!":
+            print(f"its a colisiosn")
+            self.airplane_instance.status = Status.CRASHED
+        else:
+            print(data.get("airport_message", ''))

@@ -2,9 +2,8 @@ import random
 import logging
 from .airplane_flight import AirplaneFlight
 from socket_connection import SocketConnection
-from .status import Status
+from .airplane_enums import Status, AirplaneAction
 from .unique_generator import UniqueIDGenerator
-from enum import Enum
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -40,7 +39,7 @@ class Airplane(SocketConnection):
 
     def request_landing_permission(self):
         airplane_data = self.airplane_flight.get_airplane_data()
-        return {"data": "request_approaching_airport_permission", "status": self.status.name, **airplane_data}
+        return {"data": AirplaneAction.REQUEST_APPROACHING_AIRPORT_PERMISSION.value, **airplane_data}
 
     def receive_approach_permission(self, data):
         if self.status != Status.WAITING:
@@ -53,10 +52,10 @@ class Airplane(SocketConnection):
         if self.status != Status.APPROACHING:
             raise ValueError("Airplane is not in appropriate status to receive runway permission.")
         airplane_data = self.airplane_flight.get_airplane_data()
-        return {"data": "request_runway_permission", "status": self.status.name, **airplane_data}
+        return {"data": AirplaneAction.REQUEST_RUNWAY_PERMISSION.value, **airplane_data}
 
     def receive_permission_to_descending(self, data):
-        if data.get("airport_message", '') == "permission granted":
+        if data.get("airport_message", '') == "permission for approaching runway granted":
             self.set_status(Status.DESCENDING)
             runway_coordinates = self._extract_runway_coordinates(data)
             self.airplane_flight.runway_coordinates = runway_coordinates
@@ -71,4 +70,4 @@ class Airplane(SocketConnection):
 
     def send_landed_information(self):
         airplane_data = self.airplane_flight.get_airplane_data()
-        return {"data": "confirm_landing", **airplane_data}
+        return {"data": AirplaneAction.CONFIRM_LANDING.value, **airplane_data}
