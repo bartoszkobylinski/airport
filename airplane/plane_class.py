@@ -42,15 +42,12 @@ class Airplane(SocketConnection):
         return {"data": AirplaneAction.REQUEST_APPROACHING_AIRPORT_PERMISSION.value, **airplane_data}
 
     def receive_approach_permission(self, data):
-        if self.status != Status.WAITING:
-            raise ValueError("Airplane is not in appropriate status to receive approach permission.")
-
         if data.get("airport_message", '') == "Permission to approach airport granted":
             self.set_status(Status.APPROACHING)
 
     def request_runway_permission(self):
         if self.status != Status.APPROACHING:
-            raise ValueError("Airplane is not in appropriate status to receive runway permission.")
+            logging.warning("Airplane is not in appropriate status to receive runway permission.")
         airplane_data = self.airplane_flight.get_airplane_data()
         return {"data": AirplaneAction.REQUEST_RUNWAY_PERMISSION.value, **airplane_data}
 
@@ -62,7 +59,8 @@ class Airplane(SocketConnection):
         else:
             return False
 
-    def _extract_runway_coordinates(self, data):
+    @staticmethod
+    def _extract_runway_coordinates(data):
         runway_x = data.get("coordinates", {}).get("x")
         runway_y = data.get("coordinates", {}).get("y")
         runway_z = data.get("coordinates", {}).get("z")
