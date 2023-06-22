@@ -1,16 +1,18 @@
+import time
+
+
 class PermissionHandler:
     def __init__(self, airport):
         self.airport = airport
 
     def process_landing_permission_request(self, data):
-        response = self.grant_approach_permission(data)
+        response = self.inbound_for_approach_runway()
         return response
 
-    def grant_approach_permission(self, data):
+    def grant_approach_airport_permission(self, data):
         with self.airport.lock:
             if len(self.airport.airplanes) < 100:
-                airplane = data.get("airplane_ID")
-                self.airport.airplanes.append(airplane)
+                self.airport.airplanes.append(data)
                 return {"airport_message": "Permission to approach airport granted"}
             else:
                 return {"airport_message": "Permission to approach airport rejected"}
@@ -25,9 +27,9 @@ class PermissionHandler:
                 if not runway.is_occupied:
                     runway.is_occupied = True
                     corridor_coords = runway.corridor_coords
-                    return {'airport_message': "permission granted",
+                    return {'airport_message': "permission for approaching runway granted",
                             "coordinates": {"x": corridor_coords[0], "y": corridor_coords[1], "z": corridor_coords[2]}}
-            return {"airport_message": "permission denied", "data": [runway.to_dict() for runway in self.airport.runways]}
+            return {"airport_message": "permission for approaching runway denied"}
 
     def handle_inbound(self, data):
         message = self.airport.inbounding(data)

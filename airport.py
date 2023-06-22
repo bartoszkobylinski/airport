@@ -1,6 +1,11 @@
 import threading
 import time
 from airport.airport_instance import Airport as Ap
+from db_manager import DbManager
+import sqlite3
+import os
+
+database = DbManager("airport")
 
 start_time = time.time()
 current_time = time.time()

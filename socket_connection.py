@@ -7,7 +7,7 @@ import time
 
 class SocketConnection(socket.socket):
 
-    def __init__(self, port=19452, host='127.0.0.1', encoder='utf-8', buffer=2048, socket_instance=None):
+    def __init__(self, port=22452, host='127.0.0.1', encoder='utf-8', buffer=2048, socket_instance=None):
         super().__init__()
         self.host = host
         self.port = port
@@ -25,7 +25,6 @@ class SocketConnection(socket.socket):
             data = {"airplane_ID": airplane_id} | data
         json_data = json.dumps(data).encode(self.encoder)
         length = struct.pack('>I', len(json_data))
-        time.sleep(1)
         try:
             custom_socket.sendall(length)
             custom_socket.sendall(json_data)
