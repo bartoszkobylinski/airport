@@ -1,17 +1,16 @@
 import threading
 import time
-from airport.airport_instance import Airport as Ap
+from airport.airport_instance import Airport
 from db_manager import DbManager
-import sqlite3
-import os
+
 
 database = DbManager("airport")
 
 start_time = time.time()
 current_time = time.time()
 delta_time = current_time - start_time
-#airport = Airport()
-airport = Ap()
+
+airport = Airport()
 threads = []
 server_running = True
 
