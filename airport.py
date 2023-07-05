@@ -1,17 +1,16 @@
 import threading
 import time
-from airport.airport_instance import Airport as Ap
+from airport.airport_instance import Airport
 from db_manager import DbManager
-import sqlite3
-import os
+
 
 database = DbManager("airport")
 
 start_time = time.time()
 current_time = time.time()
 delta_time = current_time - start_time
-#airport = Airport()
-airport = Ap()
+
+airport = Airport()
 threads = []
 server_running = True
 
@@ -20,8 +19,10 @@ while delta_time < 3600:
     print("Waiting for the incoming connections")
     print("-------------------------------------")
     try:
+        print("I'm here")
         client_socket, address = airport.socket.accept()
     except Exception as e:
+        print(e)
         print(f"Server closed connection")
         server_running = False
         break

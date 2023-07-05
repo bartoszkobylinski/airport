@@ -21,17 +21,14 @@ class ClientHandler:
         }
         while True:
             data = self.airport.recv_json(client_socket)
-            # print(f"this is data i got from client: {data}")
             if data:
                 action = data.get("data", "")
                 print(data)
+                time.sleep(2)
                 with self.airport.lock:
                     self.db_manager.add_row(**data)
                 response = self.process_action(action, data)
-                airport_message = response.get("airport_message", "")
-                # print(f"airplanes: {self.airport.airplanes[0].get('airplane_ID','')}")
                 self.airport.send_json(response, custom_socket=client_socket)
-                self.print_airplanes_data()
             else:
                 client_socket.close()
                 break
@@ -40,10 +37,8 @@ class ClientHandler:
         action_to_function = {
             Action.APPROACH_AIRPORT_PERMISSION:
                 (self.airport.permission_handler.grant_approach_airport_permission, True),
-            # Action.EXECUTE_APPROACH: (self.airport.handle_fly, True),
             Action.EXECUTE_APPROACH: (self.airport.handle_move_airplane, True),
             Action.RUNWAY_PERMISSION: (self.airport.permission_handler.handle_inbound_request, True),
-            # Action.RUNWAY_APPROACH: (self.airport.permission_handler.handle_inbound, True),
             Action.RUNWAY_APPROACH: (self.airport.handle_move_airplane, True),
             Action.CONFIRM_LANDING: (self.airport.handle_landed, True)
         }
@@ -53,10 +48,7 @@ class ClientHandler:
         else:
             return func()
 
-    def handle_unknown_action(self, data):
+    @staticmethod
+    def handle_unknown_action(data):
         response = {"message": f"airport get such data: {data} which is unknown for server"}
         return response
-
-    def print_airplanes_data(self):
-        for airplane in self.airport.airplanes:
-            print(f"{airplane['airplane_ID']}: {airplane['status']}")

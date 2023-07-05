@@ -38,16 +38,12 @@ class DbManager:
     def add_row(self, **incoming_data):
         with self.connect() as connection:
             cursor = connection.cursor()
-            print(incoming_data.items())
-            a = "airplane_ID"
-            print(f"a: {a} i po: {a.lower()}")
             filtered_data = \
                 {key.lower(): value for key, value in incoming_data.items() if key.lower() in self.column_names}
-            print(filtered_data)
             columns = ', '.join(filtered_data.keys())
-            print(columns)
             placeholders = ', '.join('?' for _ in filtered_data)
-            print(placeholders)
             sql = f'INSERT INTO airplanes ({columns}) VALUES ({placeholders})'
             cursor.execute(sql, tuple(filtered_data.values()))
             connection.commit()
+
+
