@@ -19,8 +19,10 @@ while delta_time < 3600:
     print("Waiting for the incoming connections")
     print("-------------------------------------")
     try:
+        print("I'm here")
         client_socket, address = airport.socket.accept()
     except Exception as e:
+        print(e)
         print(f"Server closed connection")
         server_running = False
         break
