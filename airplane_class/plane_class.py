@@ -42,6 +42,9 @@ class Airplane(SocketConnection):
         return {"data": AirplaneAction.REQUEST_APPROACHING_AIRPORT_PERMISSION.value, **airplane_data}
 
     def receive_approach_permission(self, data):
+        if data is None:
+            logging.error("data is None in receive_approach_permission")
+            return
         if data.get("airport_message", '') == "Permission to approach airport_class granted":
             self.set_status(Status.APPROACHING)
 
@@ -52,6 +55,9 @@ class Airplane(SocketConnection):
         return {"data": AirplaneAction.REQUEST_RUNWAY_PERMISSION.value, **airplane_data}
 
     def receive_permission_to_descending(self, data):
+        if data is None:
+            logging.error('data is None in receive_permission_to_descending')
+            return False
         if data.get("airport_message", '') == "permission for approaching runway granted":
             self.set_status(Status.DESCENDING)
             runway_coordinates = self._extract_runway_coordinates(data)

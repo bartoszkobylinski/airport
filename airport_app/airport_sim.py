@@ -57,32 +57,34 @@ class AirportSimulator:
         self.server_running = True
 
     def run_simulation(self, simulation_time=3600):
-        while self.delta_time < simulation_time:
-            self.current_time = time.time()
-            print("Waiting for the incoming connections")
-            print("-------------------------------------")
-            try:
-                print("I'm here")
-                client_socket, address = self.airport.socket.accept()
-            except Exception as e:
-                print(e)
-                print(f"Server closed connection")
-                self.server_running = False
-                break
-            try:
-                t = threading.Thread(target=self.airport.handle_new_client, args=(client_socket,))
-                t.start()
-                self.threads.append(t)
-            except Exception as e:
-                print(f"An exception occurred while attempting to start a new thread. The details are as follows: "
-                      f"Exception Type: {type(e).__name__} \nException Message: {str(e)}")
-                self.server_running = False
-                break
+        try:
+            while self.delta_time < simulation_time:
+                self.current_time = time.time()
+                print("Waiting for the incoming connections")
+                print("-------------------------------------")
+                try:
+                    print("I'm here")
+                    client_socket, address = self.airport.socket.accept()
+                except Exception as e:
+                    print(e)
+                    print(f"Server closed connection")
+                    self.server_running = False
+                    break
+                try:
+                    t = threading.Thread(target=self.airport.handle_new_client, args=(client_socket,))
+                    t.start()
+                    self.threads.append(t)
+                except Exception as e:
+                    print(f"An exception occurred while attempting to start a new thread. The details are as follows: "
+                          f"Exception Type: {type(e).__name__} \nException Message: {str(e)}")
+                    self.server_running = False
+                    break
 
-            self.delta_time = self.current_time - self.start_time
+                self.delta_time = self.current_time - self.start_time
 
-        for t in self.threads:
-            t.join()
-
-        if not self.server_running:
-            self.airport.socket.close()
+            for t in self.threads:
+                t.join()
+                client_socket.close()
+        finally:
+            if not self.server_running:
+                self.airport.socket.close()

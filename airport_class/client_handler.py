@@ -22,7 +22,7 @@ class ClientHandler:
             if data:
                 action = data.get("data", "")
                 print(data)
-                time.sleep(2)
+                time.sleep(1)
                 with self.airport.lock:
                     self.db_manager.add_row(**data)
                 response = self.process_action(action, data)
