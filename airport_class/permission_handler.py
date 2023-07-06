@@ -13,9 +13,9 @@ class PermissionHandler:
         with self.airport.lock:
             if len(self.airport.airplanes) < 100:
                 self.airport.airplanes.append(data)
-                return {"airport_message": "Permission to approach airport granted"}
+                return {"airport_message": "Permission to approach airport_class granted"}
             else:
-                return {"airport_message": "Permission to approach airport rejected"}
+                return {"airport_message": "Permission to approach airport_class rejected"}
 
     def handle_inbound_request(self, data):
         response = self.inbound_for_approach_runway()

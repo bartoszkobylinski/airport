@@ -1,8 +1,6 @@
-import threading
 import time
-from db_manager import DbManager
 
-from airport.airport_enums import Action, AirportResponse
+from airport_class.airport_enums import Action, AirportResponse
 
 
 class ClientHandler:

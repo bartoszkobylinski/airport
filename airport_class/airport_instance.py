@@ -3,7 +3,7 @@ import threading
 from .client_handler import ClientHandler
 from .collision_detector import CollisionDetector
 from .permission_handler import PermissionHandler
-from db_manager import DbManager
+from airport_app.db_manager import DbManager
 from .runway import Runway
 from socket_connection import SocketConnection
 
@@ -19,7 +19,7 @@ class Airport(SocketConnection):
         self.lock = threading.Lock()
         self.collision_detector = CollisionDetector(self)
         self.permission_handler = PermissionHandler(self)
-        self.db_manager = DbManager("airport")
+        self.db_manager = DbManager("airport_class")
         self.client_handler = ClientHandler(self.socket, self, self.db_manager)
 
     def handle_new_client(self, client_socket):
@@ -33,7 +33,7 @@ class Airport(SocketConnection):
             for runway in self.runways:
                 if coordinates == runway.corridor_coords[0]:
                     runway.is_occupied = False
-        return {"airport_message": "airplane landed"}
+        return {"airport_message": "airplane_class landed"}
 
     def remove_airplane_by_id(self, airplane_id: str):
         with self.lock:

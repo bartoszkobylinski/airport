@@ -42,7 +42,7 @@ class Airplane(SocketConnection):
         return {"data": AirplaneAction.REQUEST_APPROACHING_AIRPORT_PERMISSION.value, **airplane_data}
 
     def receive_approach_permission(self, data):
-        if data.get("airport_message", '') == "Permission to approach airport granted":
+        if data.get("airport_message", '') == "Permission to approach airport_class granted":
             self.set_status(Status.APPROACHING)
 
     def request_runway_permission(self):

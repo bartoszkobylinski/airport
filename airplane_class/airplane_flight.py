@@ -3,7 +3,7 @@ import random
 import math
 import logging
 
-from airplane.airplane_enums import Status
+from airplane_class.airplane_enums import Status
 
 
 class AirplaneFlight:

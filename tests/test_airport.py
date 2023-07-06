@@ -80,35 +80,35 @@ class TestAirport(unittest.TestCase):
         # Test when there are less than 100 airplanes
         self.airport.airplanes = [i for i in range(99)]
         result1 = self.airport.grant_approach_permission()
-        self.assertEqual(result1, {"airport_message": "Permission to approach airport granted"})
+        self.assertEqual(result1, {"airport_message": "Permission to approach airport_class granted"})
 
         # Test when there are exactly 100 airplanes
         self.airport.airplanes = [i for i in range(100)]
         result2 = self.airport.grant_approach_permission()
-        self.assertEqual(result2, {"airport message": "Permission to approach airport denied."})
+        self.assertEqual(result2, {"airport_class message": "Permission to approach airport_class denied."})
 
         # Test when there are more than 100 airplanes
         self.airport.airplanes = [i for i in range(101)]
         result3 = self.airport.grant_approach_permission()
-        self.assertEqual(result3, {"airport message": "Permission to approach airport denied."})
+        self.assertEqual(result3, {"airport_class message": "Permission to approach airport_class denied."})
 
     def test_process_landing_permission_request(self):
         with patch("airport_class.logger") as mock_logger:
             # Test when there are less than 100 airplanes
             self.airport.airplanes = [i for i in range(99)]
             result1 = self.airport.process_landing_permission_request()
-            self.assertEqual(result1, {"airport_message": "Permission to approach airport granted"})
+            self.assertEqual(result1, {"airport_message": "Permission to approach airport_class granted"})
             mock_logger.info.assert_called_with("Airport Control Tower: Received request for landing permission.")
             mock_logger.debug.assert_called_with(
-                "Airport Control Tower: Response to airplane is: {'airport_message': 'Permission to approach airport granted'}")
+                "Airport Control Tower: Response to airplane_class is: {'airport_message': 'Permission to approach airport_class granted'}")
 
             # Test when there are 100 or more airplanes
             self.airport.airplanes = [i for i in range(100)]
             result2 = self.airport.process_landing_permission_request()
-            self.assertEqual(result2, {"airport message": "Permission to approach airport denied."})
+            self.assertEqual(result2, {"airport_class message": "Permission to approach airport_class denied."})
             mock_logger.info.assert_called_with("Airport Control Tower: Received request for landing permission.")
             mock_logger.debug.assert_called_with(
-                "Airport Control Tower: Response to airplane is: {'airport message': 'Permission to approach airport denied.'}")
+                "Airport Control Tower: Response to airplane_class is: {'airport_class message': 'Permission to approach airport_class denied.'}")
 
     def test_add_or_update_airplane_to_list(self):
         airplane1 = {"airplane_ID": "plane1", "x": 1, "y": 2}
@@ -230,28 +230,28 @@ class TestAirport(unittest.TestCase):
         self.assertEqual(response1["message"], "ok for inbounding")
         self.assertIn(airplane1, self.airport.airplanes)
 
-        # Test with an update to the same airplane
+        # Test with an update to the same airplane_class
         updated_airplane1 = {"airplane_ID": "plane1", "x": 4, "y": 5, "z": 6}
         response2 = self.airport.inbounding(updated_airplane1)
         self.assertEqual(response2["message"], "ok for inbounding")
         self.assertIn(updated_airplane1, self.airport.airplanes)
         self.assertNotIn(airplane1, self.airport.airplanes)
 
-        # Test with another airplane (no collision)
+        # Test with another airplane_class (no collision)
         airplane2 = {"airplane_ID": "plane2", "x": 20, "y": 8, "z": 9}
         response3 = self.airport.inbounding(airplane2)
         self.assertEqual(response3["message"], "ok for inbounding")
         self.assertIn(airplane2, self.airport.airplanes)
 
-        # Test with another airplane (collision)
+        # Test with another airplane_class (collision)
         airplane3 = {"airplane_ID": "plane3", "x": 5, "y": 6, "z": 7}
         response4 = self.airport.inbounding(airplane3)
         print("response4", response4)
         self.assertEqual(response4["message"], "collision!")
-        self.assertIn("airplane-1", response4)
-        self.assertIn("airplane-2", response4)
-        self.assertEqual(response4["airplane-1"]["airplane_ID"], "plane1")
-        self.assertEqual(response4["airplane-2"]["airplane_ID"], "plane3")
+        self.assertIn("airplane_class-1", response4)
+        self.assertIn("airplane_class-2", response4)
+        self.assertEqual(response4["airplane_class-1"]["airplane_ID"], "plane1")
+        self.assertEqual(response4["airplane_class-2"]["airplane_ID"], "plane3")
 
     def clean_up(self):
         if self.airport.socket:

@@ -11,8 +11,8 @@ class Action(Enum):
 
 
 class AirportResponse(Enum):
-    APPROACH_AIRPORT_GRANTED = "Permission to approach airport granted"
-    APPROACH_AIRPORT_REJECTED = "Permission to approach airport rejected"
+    APPROACH_AIRPORT_GRANTED = "Permission to approach airport_class granted"
+    APPROACH_AIRPORT_REJECTED = "Permission to approach airport_class rejected"
     PERMISSION_GRANTED = "permission granted"
     PERMISSION_DENIED = "permission denied"
-    AIRPLANE_LANDED = "airplane landed"
+    AIRPLANE_LANDED = "airplane_class landed"
