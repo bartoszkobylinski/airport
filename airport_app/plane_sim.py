@@ -28,7 +28,7 @@ while True:
 
 
 class AirplaneSimulator:
-    def __init__(self, number_of_planes=random.randint(4, 15)):
+    def __init__(self, number_of_planes=random.randint(1, 3)):
         self.number_of_planes = number_of_planes
         self.threads = []
 
@@ -42,5 +42,5 @@ class AirplaneSimulator:
 
                 self.threads = [t for t in self.threads if t.is_alive()]
 
-            sleep_time = random.randint(5, 15)
+            sleep_time = random.randint(450, 1500)
             time.sleep(sleep_time)

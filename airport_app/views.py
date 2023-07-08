@@ -11,6 +11,7 @@ def index(request):
 
 class StartSimulationView(View):
     def get(self, request):
+        Airplane.delete_all()
         run_airport_simulation.apply_async()
         run_airplane_simulation.apply_async(countdown=10)
         return JsonResponse({"message": "Simulation started"})

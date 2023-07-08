@@ -2,12 +2,16 @@ from django.db import models
 
 
 class Airplane(models.Model):
-    airplane_id = models.CharField(max_length=8, unique=True)
+    airplane_id = models.CharField(max_length=8)
     x = models.FloatField()
     y = models.FloatField()
     z = models.FloatField()
     velocity = models.FloatField()
     fuel = models.FloatField()
+
+    @classmethod
+    def delete_all(cls):
+        cls.objects.all().delete()
 
     class Status(models.IntegerChoices):
         WAITING = 1

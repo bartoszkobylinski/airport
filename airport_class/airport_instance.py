@@ -19,7 +19,7 @@ class Airport(SocketConnection):
         self.lock = threading.Lock()
         self.collision_detector = CollisionDetector(self)
         self.permission_handler = PermissionHandler(self)
-        self.db_manager = DbManager("airport_class")
+        self.db_manager = DbManager()
         self.client_handler = ClientHandler(self.socket, self, self.db_manager)
 
     def handle_new_client(self, client_socket):
