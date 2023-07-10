@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Airplanes Animation</title>
+    <style>
+        /* CSS styles for the animation */
+        body {
+            background-color: #e0e0e0; /* Soil color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .airplane-square {
+            width: 50px;
+            height: 50px;
+            margin: 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div id="airplane-container"></div>
+
+    <script>
+    let airplanes = [];
+let currentAirplaneIndex = 0;
+
+function fetchAirplaneCoordinates() {
+    fetch('/fetch_airplane_coordinates/')
+        .then(response => response.json())
+        .then(data => {
+            airplanes = data;
+            updateAirplane();
+        })
+        .catch(error => {
+            console.error('Error fetching airplane coordinates:', error);
+        });
+}
+
+function updateAirplane() {
+    if (airplanes.length > 0) {
+        const airplane = airplanes[currentAirplaneIndex];
+        renderAirplane(airplane);
+        currentAirplaneIndex = (currentAirplaneIndex + 1) % airplanes.length;
+        setTimeout(updateAirplane, 1000);
+    }
+}
+
+function renderAirplane(airplane) {
+    const { id, x, y, z, status, fuel } = airplane;
+
+
+    const { screenX, screenY } = convert3Dto2D(x, y, z);
+
+
+    const container = document.getElementById('airplane-container');
+    const existingAirplane = document.querySelector(`.airplane-square[data-id="${id}"]`);
+    if (existingAirplane) {
+        existingAirplane.remove();
+    }
+
+    const airplaneSquare = document.createElement('div');
+    airplaneSquare.classList.add('airplane-square');
+    airplaneSquare.style.backgroundColor = getRandomColor();
+    airplaneSquare.style.transform = `translate(${screenX}px, ${screenY}px)`;
+
+
+    airplaneSquare.dataset.id = id;
+    airplaneSquare.dataset.status = status;
+    airplaneSquare.dataset.fuel = fuel;
+
+    container.appendChild(airplaneSquare);
+
+    animateAirplane(airplaneSquare, { x: screenX, y: screenY });
+}
+
+function animateAirplane(airplaneSquare, { x, y }) {
+    const animationDuration = 10;
+    const speed = getRandomSpeed();
+
+    let startTime = null;
+
+    function step(timestamp) {
+        if (!startTime) {
+            startTime = timestamp;
+        }
+
+        const progress = (timestamp - startTime) / (animationDuration * 1000);
+
+        const newX = x + speed * progress;
+        const newY = y + speed * progress;
+
+        airplaneSquare.style.transform = `translate(${newX}px, ${newY}px)`;
+
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        }
+    }
+
+    requestAnimationFrame(step);
+}
+
+function getRandomColor() {
+    const colors = ['red', 'blue', 'green', 'yellow'];
+    const randomIndex = Math.floor(Math.random() * colors.length);
+    return colors[randomIndex];
+}
+
+function getRandomSpeed() {
+    const minSpeed = 1;
+    const maxSpeed = 10;
+    return Math.floor(Math.random() * (maxSpeed - minSpeed + 1) + minSpeed);
+}
+
+function convert3Dto2D(x, y, z) {
+    const factor = 5000;
+    const screenX = (x / factor) * window.innerWidth;
+    const screenY = (y / factor) * window.innerHeight;
+    return { screenX, screenY };
+}
+fetchAirplaneCoordinates();
+
+</script>
+
+</body>
+</html>

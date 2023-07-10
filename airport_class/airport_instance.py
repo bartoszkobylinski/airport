@@ -15,7 +15,7 @@ class Airport(SocketConnection):
         self.socket.listen()
         self.airplanes = []
         self.counter = 0
-        self.runways = [Runway(1, (1000, 2000, 0)), Runway(2, (4000, 2000, 0))]
+        self.runways = [Runway(1, (4000, 2000, 0)), Runway(2, (6000, 4000, 0))]
         self.lock = threading.Lock()
         self.collision_detector = CollisionDetector(self)
         self.permission_handler = PermissionHandler(self)

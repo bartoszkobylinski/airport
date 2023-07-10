@@ -23,8 +23,8 @@ class Airplane(SocketConnection):
         return f"{airplane}"
 
     def init_airplane_state(self):
-        x = random.randint(-5000, 5000)
-        y = random.randint(-5000, 5000)
+        x = random.randint(0, 10000)
+        y = random.randint(0, 10000)
         z = random.randint(2000, 5000)
         velocity = random.randint(50, 500)
         fuel = random.randint(0, 1000)

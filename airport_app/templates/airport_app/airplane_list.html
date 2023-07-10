@@ -10,7 +10,7 @@
     <p>{{object_list}}</p>
   <ul>
   {% for airplane in object_list %}
-    <li>{{ airplane.x }} - {{ airplane.y }}</li>
+    <li>{{airplane.airplane_id}} - {{ airplane.x }} - {{ airplane.y }} - {{airplane.status}}</li>
   {% empty %}
     <li>No airports found.</li>
   {% endfor %}
