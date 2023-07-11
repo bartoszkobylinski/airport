@@ -26,7 +26,7 @@ class StatsView(ListView):
 class AirplaneCoordinatesView(View):
 
     def get(self, request, *args, **kwargs):
-        airplanes = Airplane.objects.all().order_by('airplane_id')
+        airplanes = Airplane.objects.all().order_by('airplane_id', 'timestamp')
         airplane_data = []
 
         for airplane in airplanes:
@@ -34,7 +34,7 @@ class AirplaneCoordinatesView(View):
             next_position_index = request.session.get(f'next_position_index_{airplane.airplane_id}', 0)
 
             if next_position_index >= len(cached_positions) - 1:
-                cached_positions = list(airplane.positions.order_by('timestamp')[
+                cached_positions = list(Airplane.objects.filter(airplane_id=airplane.airplane_id).order_by('timestamp')[
                                         next_position_index:next_position_index + 20
                                         ].values('x', 'y', 'z', 'status', 'fuel'))
                 next_position_index = 0
@@ -50,6 +50,8 @@ class AirplaneCoordinatesView(View):
                     'id': airplane.airplane_id,
                     **next_position,
                 })
+
+        return JsonResponse(airplane_data, safe=False)
 
 
 class AnimationView(TemplateView):

@@ -1,5 +1,6 @@
 import time
 
+from datetime import datetime
 from airport_class.airport_enums import Action, AirportResponse
 
 
@@ -24,6 +25,7 @@ class ClientHandler:
                 print(data)
                 time.sleep(1)
                 with self.airport.lock:
+                    data["timestamp"] = datetime.now()
                     self.db_manager.add_row(**data)
                 response = self.process_action(action, data)
                 self.airport.send_json(response, custom_socket=client_socket)

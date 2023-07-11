@@ -8,6 +8,7 @@ class Airplane(models.Model):
     z = models.FloatField()
     velocity = models.FloatField()
     fuel = models.FloatField()
+    timestamp = models.DateTimeField()
 
     @classmethod
     def delete_all(cls):

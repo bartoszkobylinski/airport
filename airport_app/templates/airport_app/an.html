@@ -1,130 +1,125 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <title>Airplanes Animation</title>
-    <style>
-        /* CSS styles for the animation */
-        body {
-            background-color: #e0e0e0; /* Soil color */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .airplane-square {
-            width: 50px;
-            height: 50px;
-            margin: 10px;
-            border-radius: 5px;
-            display: inline-block;
-        }
-    </style>
+  <meta charset="utf-8">
+  <title>Three.js Cube Example</title>
+  <style>
+    body { margin: 0; }
+  </style>
 </head>
 <body>
-    <div id="airplane-container"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script>
+    // Create a scene
+    var scene = new THREE.Scene();
 
-    <script>
-    let airplanes = [];
-let currentAirplaneIndex = 0;
+    // Define scene dimensions
+    var sceneWidth = 10000;
+    var sceneHeight = 5000;
+    var sceneDepth = 10000;
 
-function fetchAirplaneCoordinates() {
-    fetch('/fetch_airplane_coordinates/')
-        .then(response => response.json())
-        .then(data => {
-            airplanes = data;
-            updateAirplane();
-        })
-        .catch(error => {
-            console.error('Error fetching airplane coordinates:', error);
-        });
-}
+    // Calculate aspect ratio
+    var aspectRatio = window.innerWidth / window.innerHeight;
 
-function updateAirplane() {
-    if (airplanes.length > 0) {
-        const airplane = airplanes[currentAirplaneIndex];
-        renderAirplane(airplane);
-        currentAirplaneIndex = (currentAirplaneIndex + 1) % airplanes.length;
-        setTimeout(updateAirplane, 1000);
+    // Create a camera
+    var camera = new THREE.PerspectiveCamera(75, aspectRatio, 0.1, 10000);
+    camera.position.set(sceneWidth / 2, sceneHeight / 2, Math.max(sceneWidth, sceneHeight) / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)));
+
+    // Create a renderer
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Create lights
+    var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    var directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight.position.set(0, 1, 0);
+    scene.add(directionalLight);
+
+    // Create a cube
+    var geometry = new THREE.BoxGeometry(100, 100, 100); // Adjust size as desired
+    var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    var cube = new THREE.Mesh(geometry, material);
+
+    // Array of coordinates [x, y, z]
+    var coordinates = [
+      [2943, 764, 3515],
+[3291, 587, 3521],
+[3291, 587, 3521],
+[3379, 762, 3085],
+[3467, 937, 2649],
+[3555, 1112, 2213],
+[3643, 1287, 1777],
+[3731, 1462, 1341],
+[3818, 1637, 905],
+[3820, 1641, 895],
+[3822, 1645, 885],
+[3824, 1649, 874],
+[3826, 1654, 863],
+[3828, 1659, 851],
+[3831, 1664, 838],
+[3834, 1669, 825],
+[3837, 1675, 811],
+[3840, 1681, 796],
+[3843, 1687, 780],
+[3850, 1701, 745],
+[3854, 1708, 726],
+[3858, 1716, 706],
+[3862, 1724, 685],
+[3866, 1733, 663],
+[3871, 1742, 640],
+[3876, 1752, 615],
+[3881, 1763, 589],
+[3887, 1774, 561],
+[3893, 1786, 532],
+[3899, 1798, 501],
+[3906, 1811, 468],
+[3913, 1825, 434],
+[3920, 1840, 398],
+[3928, 1855, 360],
+[3936, 1871, 319],
+[3945, 1888, 276],
+[3954, 1906, 231],
+[3955, 1909, 224],
+[3957, 1912, 216],
+[3959, 1915, 208],
+[3961, 1919, 199],
+[3963, 1923, 189],
+[3965, 1927, 179],
+
+    ];
+
+    // Set initial position of the cube
+    var currentIndex = 0;
+    cube.position.set(
+      coordinates[currentIndex][0],
+      coordinates[currentIndex][1],
+      coordinates[currentIndex][2]
+    );
+
+    scene.add(cube);
+
+    // Animation loop
+    var animationSpeed = 0.002
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Move to the next coordinate
+      currentIndex++;
+      if (currentIndex >= coordinates.length) {
+        currentIndex = 0; // Start over if all coordinates have been visited
+      }
+      cube.position.set(
+        coordinates[currentIndex][0],
+        coordinates[currentIndex][1],
+        coordinates[currentIndex][2]
+      );
+
+      renderer.render(scene, camera);
     }
-}
 
-function renderAirplane(airplane) {
-    const { id, x, y, z, status, fuel } = airplane;
-
-
-    const { screenX, screenY } = convert3Dto2D(x, y, z);
-
-
-    const container = document.getElementById('airplane-container');
-    const existingAirplane = document.querySelector(`.airplane-square[data-id="${id}"]`);
-    if (existingAirplane) {
-        existingAirplane.remove();
-    }
-
-    const airplaneSquare = document.createElement('div');
-    airplaneSquare.classList.add('airplane-square');
-    airplaneSquare.style.backgroundColor = getRandomColor();
-    airplaneSquare.style.transform = `translate(${screenX}px, ${screenY}px)`;
-
-
-    airplaneSquare.dataset.id = id;
-    airplaneSquare.dataset.status = status;
-    airplaneSquare.dataset.fuel = fuel;
-
-    container.appendChild(airplaneSquare);
-
-    animateAirplane(airplaneSquare, { x: screenX, y: screenY });
-}
-
-function animateAirplane(airplaneSquare, { x, y }) {
-    const animationDuration = 10;
-    const speed = getRandomSpeed();
-
-    let startTime = null;
-
-    function step(timestamp) {
-        if (!startTime) {
-            startTime = timestamp;
-        }
-
-        const progress = (timestamp - startTime) / (animationDuration * 1000);
-
-        const newX = x + speed * progress;
-        const newY = y + speed * progress;
-
-        airplaneSquare.style.transform = `translate(${newX}px, ${newY}px)`;
-
-        if (progress < 1) {
-            requestAnimationFrame(step);
-        }
-    }
-
-    requestAnimationFrame(step);
-}
-
-function getRandomColor() {
-    const colors = ['red', 'blue', 'green', 'yellow'];
-    const randomIndex = Math.floor(Math.random() * colors.length);
-    return colors[randomIndex];
-}
-
-function getRandomSpeed() {
-    const minSpeed = 1;
-    const maxSpeed = 10;
-    return Math.floor(Math.random() * (maxSpeed - minSpeed + 1) + minSpeed);
-}
-
-function convert3Dto2D(x, y, z) {
-    const factor = 5000;
-    const screenX = (x / factor) * window.innerWidth;
-    const screenY = (y / factor) * window.innerHeight;
-    return { screenX, screenY };
-}
-fetchAirplaneCoordinates();
-
-</script>
-
+    animate();
+  </script>
 </body>
 </html>
