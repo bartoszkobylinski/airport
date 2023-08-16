@@ -5,11 +5,9 @@ from .plane_class import Status
 
 
 def main(plane):
-    print(plane)
     if plane.status is Status.WAITING:
         approaching_permission_message = plane.request_landing_permission()
         plane.send_json(approaching_permission_message)
-        print(plane.airplane_flight.uniqueId, plane.airplane_flight.fuel)
         message = plane.recv_json()
         plane.receive_approach_permission(message)
     while plane.status not in {Status.WAITING, Status.LANDED, Status.CRASHED}:

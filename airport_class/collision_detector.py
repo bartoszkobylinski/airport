@@ -1,4 +1,3 @@
-import itertools
 import math
 from itertools import combinations
 
@@ -15,14 +14,13 @@ class CollisionDetector:
             return False
         distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
         if distance <= limit:
-            print(f"distance is:{distance}")
             return True
         else:
             return False
 
     def check_for_collision(self):
         airplanes_copy = self.airport.airplanes.copy()
-        for airplane_one, airplane_two in itertools.combinations(airplanes_copy, 2):
+        for airplane_one, airplane_two in combinations(airplanes_copy, 2):
             if self.check_collision(airplane_one, airplane_two, limit=10):
                 airplane_one_id = airplane_one.get('airplane_ID')
                 airplane_two_id = airplane_two.get('airplane_ID')

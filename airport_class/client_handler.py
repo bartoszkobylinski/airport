@@ -1,7 +1,9 @@
 import time
 
+from random import choice
 from datetime import datetime
-from airport_class.airport_enums import Action, AirportResponse
+from airport_class.airport_enums import Action
+from airport_class.utils import get_plane_images
 
 
 class ClientHandler:
@@ -11,21 +13,15 @@ class ClientHandler:
         self.db_manager = db_manager
 
     def handle_new_client(self, client_socket):
-        status_mapping = {
-            AirportResponse.APPROACH_AIRPORT_GRANTED.value: "approaching",
-            AirportResponse.APPROACH_AIRPORT_REJECTED.value: "rejected for approach",
-            AirportResponse.PERMISSION_GRANTED.value: "inbounding to runway",
-            AirportResponse.PERMISSION_DENIED.value: "approaching",
-            AirportResponse.AIRPLANE_LANDED.value: "landed"
-        }
         while True:
             data = self.airport.recv_json(client_socket)
             if data:
                 action = data.get("data", "")
                 print(data)
-                time.sleep(1)
+                time.sleep(0.1)
                 with self.airport.lock:
                     data["timestamp"] = datetime.now()
+                    data["image_url"] = choice(get_plane_images())
                     self.db_manager.add_row(**data)
                 response = self.process_action(action, data)
                 self.airport.send_json(response, custom_socket=client_socket)

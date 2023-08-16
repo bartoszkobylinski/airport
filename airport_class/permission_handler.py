@@ -1,6 +1,3 @@
-import time
-
-
 class PermissionHandler:
     def __init__(self, airport):
         self.airport = airport

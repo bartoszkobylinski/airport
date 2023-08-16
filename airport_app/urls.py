@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import index, StartSimulationView, StatsView, AirplaneCoordinatesView, AnimationView
+from .views import index, StartSimulationView, StatsView, AirplaneCoordinatesView, AnimationView, TestS3BucketImageView
 
 urlpatterns = [
     path("", index, name="index"),
@@ -7,4 +7,5 @@ urlpatterns = [
     path("airplanes/", StatsView.as_view(), name="airplanes"),
     path("fetch_airplane_coordinates/", AirplaneCoordinatesView.as_view(), name="fetch_airplane_coordinates"),
     path("animation/", AnimationView.as_view(), name="animation_view"),
+    path("test/", TestS3BucketImageView.as_view(), name="test"),
 ]

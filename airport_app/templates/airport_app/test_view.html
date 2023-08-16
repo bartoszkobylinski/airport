@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airplane Animation</title>
+    <style>
+        body{
+            display: flex;
+            flex-direction: row;
+        }
+        #airplane-container {
+            position: relative;
+            width: 1200px;
+            height: 900px;
+            border: 1px solid black;
+            overflow: hidden;
+        }
+
+        .airplane {
+            position: relative;
+            transition: left 1s, top 1s;
+        }
+    </style>
+</head>
+<body>
+    <div id="airplane-container" style="float:left; width: 70%;">
+        <!-- Airplanes will be inserted here -->
+    </div>
+
+    <!-- Area to print the response on the right side -->
+    <pre id="response-output" style="float:right; width: 30%; border: 1px solid #ccc; padding: 10px; overflow: auto;"></pre>
+
+    <script>
+        function updateAirplanes() {
+            fetch('/fetch_airplane_coordinates/')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('airplane-container');
+
+                    // Print the response data to the response-output area
+                    const responseOutput = document.getElementById('response-output');
+                    responseOutput.textContent = JSON.stringify(data, null, 2); // Pretty print the JSON data
+
+                    data.forEach(airplane => {
+                        let div = document.getElementById(airplane.id);
+                        if (!div) {
+                            div = document.createElement('div');
+                            div.id = airplane.id;
+                            div.className = 'airplane-container';
+                            container.appendChild(div);
+                        }
+
+                        let img = div.querySelector('img');
+                        if (!img) {
+                            img = document.createElement('img');
+                            img.src = airplane.image_url;
+                            img.className = 'airplane';
+                            div.appendChild(img);
+                        }
+
+                        img.style.width = airplane.image_size + 'px';
+                        img.style.height = airplane.image_size + 'px';
+
+                        div.style.position = 'absolute'
+                        img.style.left = airplane.x + 'px';
+                        img.style.top = airplane.y + 'px';
+                        img.style.maxWidth = '100%';
+                        img.style.maxHeight = '100%';
+                        img.style.display = 'block';
+                    });
+                });
+        }
+
+        setInterval(updateAirplanes, 300);
+    </script>
+</body>
+
+</html>

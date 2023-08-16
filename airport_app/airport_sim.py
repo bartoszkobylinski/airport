@@ -63,10 +63,9 @@ class AirportSimulator:
                 print("Waiting for the incoming connections")
                 print("-------------------------------------")
                 try:
-                    print("I'm here")
+
                     client_socket, address = self.airport.socket.accept()
                 except Exception as e:
-                    print(e)
                     print(f"Server closed connection")
                     self.server_running = False
                     break
