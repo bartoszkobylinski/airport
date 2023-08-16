@@ -45,6 +45,16 @@ class Airplane(models.Model):
     fuel = models.FloatField()
     image_url = models.CharField(max_length=255, blank=True)
     timestamp = models.DateTimeField()
+    image_x = models.IntegerField(default=0)
+    image_y = models.IntegerField(default=0)
+    image_size = models.IntegerField(default=50)
+
+    def save(self, *args, **kwargs):
+        x, y, size = self.project_to_screen(self.x, self.y, self.z)
+        self.image_x = round(x)
+        self.image_y = round(y)
+        self.image_size = round(size)
+        super(Airplane, self).save(*args, **kwargs)
 
     @classmethod
     def delete_all(cls):
@@ -55,32 +65,9 @@ class Airplane(models.Model):
         """Linear interpolation from a to b using t."""
         return a + (b - a) * t
 
-    '''
-    @staticmethod
-    def project_to_screen(x, y, z, screen_width=1200, screen_height=1800, camera_z=-1000):
-        """Projects the 3D coordinates to 2D screen coordinates."""
-        d = z + abs(camera_z)  # distance from the camera to the object
-        x_2d = (camera_z * x / d) + screen_width / 2
-        y_2d = (camera_z * y / d) + screen_height / 2
-
-        # Adjust size of image based on distance from the camera assuming that the maximum distance the object can be
-        # from the camera is abs(camera_z) * 2
-        t = 1 - min(d, abs(camera_z) * 2) / (abs(camera_z) * 2)
-        image_size = Airplane.lerp(50, 150, t)
-
-        # Adjust coordinates so that the image will be centered
-        image_x, image_y = x_2d - image_size / 2, y_2d - image_size / 2
-
-        return image_x, image_y, image_size
-    '''
-
     @staticmethod
     def project_to_screen(x, y, z, screen_width=1200, screen_height=900, camera_z=-1000):
         """Projects the 3D coordinates to 2D screen coordinates."""
-
-        # Translate so the 3D and 2D spaces are aligned
-        # x += 5000
-        # y += 5000
 
         # Scale down the 3D coordinates to fit the screen
         x = (x / 10000) * screen_width
